@@ -39,7 +39,7 @@ dependencies = [
 optional-dependencies.dev = [
     "actionlint-py==1.7.11.24",
     "check-manifest==0.51",
-    "deptry==0.24.0",
+    "deptry==0.25.1",
     "mypy[faster-cache]==1.19.1",
     "prek==0.3.5",
     "pyproject-fmt==2.18.1",
