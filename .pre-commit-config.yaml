@@ -1,7 +1,12 @@
 ---
 fail_fast: true
 
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
 ci:
+  # We use system Python, with required dependencies specified in pyproject.toml.
+  # We therefore cannot use those dependencies in pre-commit CI.
   skip:
     - actionlint
     - check-manifest
@@ -53,6 +58,17 @@ repos:
         stages: [pre-commit]
       - id: trailing-whitespace
         stages: [pre-commit]
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: rst-directive-colons
+        stages: [pre-commit]
+      - id: rst-inline-touching-normal
+        stages: [pre-commit]
+      - id: text-unicode-replacement-char
+        stages: [pre-commit]
+      - id: rst-backticks
+        stages: [pre-commit]
   - repo: local
     hooks:
       - id: actionlint
@@ -64,19 +80,19 @@ repos:
         additional_dependencies: [uv==0.9.5]
         stages: [pre-commit]
 
-      - id: check-manifest
-        name: check-manifest
-        stages: [pre-push]
-        entry: uv run --extra=dev -m check_manifest
+      - id: shellcheck
+        name: shellcheck
+        entry: uv run --extra=dev shellcheck --shell=bash
         language: python
-        pass_filenames: false
+        types_or: [shell]
         additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
 
-      - id: deptry
-        name: deptry
-        entry: uv run --extra=dev -m deptry src/
+      - id: shfmt
+        name: shfmt
+        entry: uv run --extra=dev shfmt --write --space-redirects --indent=4
         language: python
-        pass_filenames: false
+        types_or: [shell]
         additional_dependencies: [uv==0.9.5]
         stages: [pre-commit]
 
@@ -89,14 +105,13 @@ repos:
         pass_filenames: false
         additional_dependencies: [uv==0.9.5]
 
-      - id: pyproject-fmt-fix
-        name: pyproject-fmt
-        entry: uv run --extra=dev pyproject-fmt
+      - id: check-manifest
+        name: check-manifest
+        stages: [pre-push]
+        entry: uv run --extra=dev -m check_manifest
         language: python
-        types_or: [toml]
-        files: pyproject.toml
+        pass_filenames: false
         additional_dependencies: [uv==0.9.5]
-        stages: [pre-commit]
 
       - id: pyright
         name: pyright
@@ -106,6 +121,14 @@ repos:
         types_or: [python, toml]
         pass_filenames: false
         additional_dependencies: [uv==0.9.5]
+
+      - id: deptry
+        name: deptry
+        entry: uv run --extra=dev -m deptry src/
+        language: python
+        pass_filenames: false
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
 
       - id: ruff-check-fix
         name: Ruff check fix
@@ -123,19 +146,12 @@ repos:
         additional_dependencies: [uv==0.9.5]
         stages: [pre-commit]
 
-      - id: shellcheck
-        name: shellcheck
-        entry: uv run --extra=dev shellcheck --shell=bash
+      - id: pyproject-fmt-fix
+        name: pyproject-fmt
+        entry: uv run --extra=dev pyproject-fmt
         language: python
-        types_or: [shell]
-        additional_dependencies: [uv==0.9.5]
-        stages: [pre-commit]
-
-      - id: shfmt
-        name: shfmt
-        entry: uv run --extra=dev shfmt --write --space-redirects --indent=4
-        language: python
-        types_or: [shell]
+        types_or: [toml]
+        files: pyproject.toml
         additional_dependencies: [uv==0.9.5]
         stages: [pre-commit]
 
