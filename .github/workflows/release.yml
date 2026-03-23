@@ -125,17 +125,17 @@ jobs:
       # In particular, we push to PyPI and then immediately try to install
       # the pushed version.
       # Here, we give PyPI time to propagate the package.
-      - name: Install doccmd from PyPI
+      - name: Install literalizer-cli from PyPI
         uses: nick-fields/retry@v3
         with:
           timeout_seconds: 5
           max_attempts: 50
-          command: uv pip install --refresh doccmd==${{ steps.calver.outputs.release }}
+          command: uv pip install --refresh literalizer-cli==${{ steps.calver.outputs.release }}
 
       - name: Set up Homebrew filename
         id: set-homebrew-filename
         run: |
-          echo "filename=doccmd.rb" >> "$GITHUB_OUTPUT"
+          echo "filename=literalizer-cli.rb" >> "$GITHUB_OUTPUT"
 
       # We still hit the race condition, so we have a retry here too.
       - name: Create a Homebrew recipe
@@ -145,14 +145,15 @@ jobs:
           timeout_seconds: 5
           max_attempts: 50
           command: |
-            uv run --no-cache --with="doccmd==${{ steps.calver.outputs.release }}" --extra=release poet --formula doccmd > ${{ steps.set-homebrew-filename.outputs.filename }}
+            uv run --no-cache --with="literalizer-cli==${{ steps.calver.outputs.release }}" --extra=release poet --formula literalizer-cli > ${{ steps.set-homebrew-filename.outputs.filename }}
 
       - name: Update Homebrew description
         id: update_homebrew_description
         uses: jacobtomlinson/gha-find-replace@v3
         with:
           find: desc "Shiny new formula"
-          replace: desc "Run tools against code blocks in documentation"
+          replace: desc "CLI for literalizer - convert data structures to native language
+            literal syntax"
           include: ${{ steps.set-homebrew-filename.outputs.filename }}
           regex: false
 
@@ -174,7 +175,7 @@ jobs:
         with:
           destination_branch: main
           source_file: ${{ steps.set-homebrew-filename.outputs.filename }}
-          destination_repo: adamtheturtle/homebrew-doccmd
+          destination_repo: adamtheturtle/homebrew-literalizer-cli
           user_email: adamdangoor@gmail.com
           user_name: adamtheturtle
           commit_message: Bump CLI Homebrew recipe
@@ -223,7 +224,7 @@ jobs:
         id: update_nix_version
         uses: jacobtomlinson/gha-find-replace@v3
         with:
-          find: (github:adamtheturtle/doccmd/)[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?
+          find: (github:adamtheturtle/literalizer-cli/)[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?
           replace: ${1}${{ steps.tag_version.outputs.new_tag }}
           include: README.rst
           regex: true
@@ -253,11 +254,11 @@ jobs:
         with:
           python_ver: '3.13'
           pyinstaller_ver: ==6.12.0
-          spec: bin/doccmd-wrapper.py
+          spec: bin/literalize-wrapper.py
           requirements: '`echo ${{ steps.build-wheel.outputs.wheel_filename }} > requirements.txt
             && echo requirements.txt`'
-          options: --onefile, --name "doccmd-linux"
-          upload_exe_with_name: doccmd-linux
+          options: --onefile, --name "literalize-linux"
+          upload_exe_with_name: literalize-linux
           clean_checkout: false
 
       - name: Create a GitHub release
@@ -265,7 +266,7 @@ jobs:
         with:
           # Use a specific artifact name (not a glob) so that we get a clear
           # error if the artifact does not exist for some reason.
-          artifacts: dist/doccmd-linux
+          artifacts: dist/literalize-linux
           artifactErrorsFailBuild: true
           tag: ${{ steps.tag_version.outputs.new_tag }}
           makeLatest: true
@@ -310,9 +311,9 @@ jobs:
             docker buildx build \
               --push \
               --platform linux/amd64,linux/arm64 \
-              --build-arg DOCCMD_VERSION=${{ needs.build.outputs.new_tag }} \
-              --tag ghcr.io/adamtheturtle/doccmd:${{ needs.build.outputs.new_tag }} \
-              --tag ghcr.io/adamtheturtle/doccmd:latest \
+              --build-arg LITERALIZER_CLI_VERSION=${{ needs.build.outputs.new_tag }} \
+              --tag ghcr.io/adamtheturtle/literalizer-cli:${{ needs.build.outputs.new_tag }} \
+              --tag ghcr.io/adamtheturtle/literalizer-cli:latest \
               .
 
   build-macos:
@@ -339,27 +340,27 @@ jobs:
           max_attempts: 50
           command: |
             normalized_version=$(echo "${{ needs.build.outputs.new_tag }}" | sed -E 's/\.0+([0-9])/.\1/g')
-            pip index versions doccmd | grep -wq "$normalized_version"
+            pip index versions literalizer-cli | grep -wq "$normalized_version"
 
       - name: Create requirements file
-        run: echo "doccmd==${{ needs.build.outputs.new_tag }}" > requirements.txt
+        run: echo "literalizer-cli==${{ needs.build.outputs.new_tag }}" > requirements.txt
 
       - name: Create macOS binary
         uses: sayyid5416/pyinstaller@v1
         with:
           python_ver: '3.13'
           pyinstaller_ver: ==6.12.0
-          spec: bin/doccmd-wrapper.py
+          spec: bin/literalize-wrapper.py
           requirements: requirements.txt
-          options: --onefile, --name "doccmd-macos"
-          upload_exe_with_name: doccmd-macos
+          options: --onefile, --name "literalize-macos"
+          upload_exe_with_name: literalize-macos
           clean_checkout: false
 
       - name: Upload macOS binary to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ needs.build.outputs.new_tag }} dist/doccmd-macos --clobber
+          gh release upload ${{ needs.build.outputs.new_tag }} dist/literalize-macos --clobber
 
   build-windows:
     name: Build Windows binary
@@ -386,27 +387,27 @@ jobs:
           shell: bash
           command: |
             normalized_version=$(echo "${{ needs.build.outputs.new_tag }}" | sed -E 's/\.0+([0-9])/.\1/g')
-            pip index versions doccmd | grep -wq "$normalized_version"
+            pip index versions literalizer-cli | grep -wq "$normalized_version"
 
       - name: Create requirements file
-        run: echo "doccmd==${{ needs.build.outputs.new_tag }}" > requirements.txt
+        run: echo "literalizer-cli==${{ needs.build.outputs.new_tag }}" > requirements.txt
 
       - name: Create Windows binary
         uses: sayyid5416/pyinstaller@v1
         with:
           python_ver: '3.13'
           pyinstaller_ver: ==6.12.0
-          spec: bin/doccmd-wrapper.py
+          spec: bin/literalize-wrapper.py
           requirements: requirements.txt
-          options: --onefile, --name "doccmd-windows"
-          upload_exe_with_name: doccmd-windows
+          options: --onefile, --name "literalize-windows"
+          upload_exe_with_name: literalize-windows
           clean_checkout: false
 
       - name: Upload Windows binary to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ needs.build.outputs.new_tag }} dist/doccmd-windows.exe --clobber
+          gh release upload ${{ needs.build.outputs.new_tag }} dist/literalize-windows.exe --clobber
 
   publish-winget:
     name: Publish to winget
@@ -421,7 +422,7 @@ jobs:
       - name: Publish to winget
         uses: vedantmgoyal9/winget-releaser@v2
         with:
-          identifier: adamtheturtle.doccmd
+          identifier: adamtheturtle.literalizer-cli
           installers-regex: \.exe$
           release-tag: ${{ needs.build.outputs.new_tag }}
           token: ${{ secrets.WINGET_TOKEN }}
