@@ -1,0 +1,9 @@
+Usage: literalize [OPTIONS]
+
+  Convert data structures to native language literal syntax.
+
+Options:
+  --version                       Show the version and exit.
+  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|elixir|erlang|fortran|fsharp|go|groovy|haskell|hcl|java|javascript|julia|kotlin|lua|matlab|mojo|nim|norg|objectivec|ocaml|occam|perl|php|powershell|python|r|racket|ruby|rust|scala|swift|toml|typescript|visualbasic|yaml|zig]
+                                  Target language for output.  [required]
+  --help                          Show this message and exit.
