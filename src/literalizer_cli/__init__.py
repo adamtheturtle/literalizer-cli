@@ -59,17 +59,17 @@ def literalize_input(
             error_on_coercion=error_on_coercion,
         )
     except literalizer.exceptions.JSONParseError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.YAMLParseError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.ParseError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.EmptyDictKeyError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.HeterogeneousCoercionError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.NullInCollectionError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
 
 
 @click.command(name="literalize")
@@ -78,14 +78,14 @@ def literalize_input(
     "--language",
     "-l",
     required=True,
-    type=click.Choice(sorted(_LANGUAGE_MAP), case_sensitive=False),
+    type=click.Choice(choices=sorted(_LANGUAGE_MAP), case_sensitive=False),
     help="Target language for output.",
 )
 @click.option(
     "--input-format",
     "-f",
     default="yaml",
-    type=click.Choice(_INPUT_FORMATS, case_sensitive=False),
+    type=click.Choice(choices=_INPUT_FORMATS, case_sensitive=False),
     help="Input data format.",
 )
 @click.option(
@@ -143,7 +143,7 @@ def main(
         new_variable=new_variable,
         error_on_coercion=error_on_coercion,
     )
-    click.echo(result)
+    click.echo(message=result)
 
 
 if __name__ == "__main__":

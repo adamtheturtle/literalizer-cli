@@ -53,12 +53,14 @@ def test_literalize_json_to_python() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    expected = textwrap.dedent("""\
+    expected = textwrap.dedent(
+        text="""\
         {
             "a": 1,
             "b": (2, 3),
         }
-    """)
+    """
+    )
     assert result.output == expected
 
 
@@ -73,11 +75,13 @@ def test_literalize_json_to_go() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    expected = textwrap.dedent("""\
+    expected = textwrap.dedent(
+        text="""\
         map[string]int{
             "a": 1,
         }
-    """)
+    """
+    )
     assert result.output == expected
 
 
@@ -92,12 +96,14 @@ def test_literalize_yaml_to_python() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    expected = textwrap.dedent("""\
+    expected = textwrap.dedent(
+        text="""\
         {
             "a": 1,
             "b": (2, 3),
         }
-    """)
+    """
+    )
     assert result.output == expected
 
 
@@ -112,11 +118,13 @@ def test_literalize_yaml_short_flag() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    expected = textwrap.dedent("""\
+    expected = textwrap.dedent(
+        text="""\
         map[string]int{
             "a": 1,
         }
-    """)
+    """
+    )
     assert result.output == expected
 
 
@@ -131,11 +139,13 @@ def test_custom_indent() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    expected = textwrap.dedent("""\
+    expected = textwrap.dedent(
+        text="""\
         {
         \t"a": 1,
         }
-    """)
+    """
+    )
     assert result.output == expected
 
 
@@ -150,11 +160,13 @@ def test_line_prefix() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    expected = textwrap.dedent("""\
+    expected = textwrap.dedent(
+        text="""\
         >>> {
         >>>     "a": 1,
         >>> }
-    """)
+    """
+    )
     assert result.output == expected
 
 
@@ -197,11 +209,13 @@ def test_variable_name() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    expected = textwrap.dedent("""\
+    expected = textwrap.dedent(
+        text="""\
         data = {
             "a": 1,
         }
-    """)
+    """
+    )
     assert result.output == expected
 
 
@@ -224,11 +238,13 @@ def test_no_new_variable() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    expected = textwrap.dedent("""\
+    expected = textwrap.dedent(
+        text="""\
         data = map[string]int{
             "a": 1,
         }
-    """)
+    """
+    )
     assert result.output == expected
 
 
@@ -292,8 +308,8 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
 
 
 @pytest.mark.parametrize(
-    "case",
-    [
+    argnames="case",
+    argvalues=[
         ExceptionCase(
             input_format="json",
             input_string='{"": 1}\n',
@@ -361,7 +377,7 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
     case: ExceptionCase,
 ) -> None:
     """Real literalizer exceptions are surfaced as Click exceptions."""
-    with pytest.raises(ClickException) as exc_info:
+    with pytest.raises(expected_exception=ClickException) as exc_info:
         literalizer_cli.literalize_input(
             input_string=case.input_string,
             language=case.language,
