@@ -28,7 +28,7 @@ def test_literalize_json_to_python() -> None:
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
-        args=["--language", "python"],
+        args=["--language", "python", "--input-format", "json"],
         input='{"a": 1, "b": [2, 3]}\n',
         catch_exceptions=False,
         color=True,
@@ -42,8 +42,36 @@ def test_literalize_json_to_go() -> None:
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
-        args=["-l", "go"],
+        args=["-l", "go", "-f", "json"],
         input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "1" in result.output
+
+
+def test_literalize_yaml_to_python() -> None:
+    """YAML input is converted to Python literal syntax."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--language", "python", "--input-format", "yaml"],
+        input="a: 1\nb:\n  - 2\n  - 3\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "1" in result.output
+
+
+def test_literalize_yaml_short_flag() -> None:
+    """YAML input works with the short -f flag."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "go", "-f", "yaml"],
+        input="a: 1\n",
         catch_exceptions=False,
         color=True,
     )
