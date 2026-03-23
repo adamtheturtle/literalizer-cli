@@ -69,9 +69,9 @@ optional-dependencies.dev = [
 optional-dependencies.release = [
     "check-wheel-contents==0.6.3",
     "homebrew-pypi-poet==0.10",
-    # homebrew-pypi-poet uses pkg_resources but doesn't declare setuptools
-    # as a dependency.
-    "setuptools>=82.0.1",
+    # homebrew-pypi-poet uses pkg_resources, which was removed in
+    # setuptools 82.
+    "setuptools>=70,<82",
 ]
 urls.Documentation = "https://adamtheturtle.github.io/literalizer-cli/"
 urls.Source = "https://github.com/adamtheturtle/literalizer-cli"
