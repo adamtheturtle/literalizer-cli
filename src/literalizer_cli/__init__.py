@@ -28,7 +28,7 @@ def _get_language_init_params(
     lang_cls: LanguageCls,
 ) -> dict[str, inspect.Parameter]:
     """Get the public init parameters for a language class."""
-    sig = inspect.signature(lang_cls.__init__)
+    sig = inspect.signature(obj=lang_cls.__init__)  # type: ignore[misc]
     return {
         name: param
         for name, param in sig.parameters.items()
@@ -45,6 +45,48 @@ def _all_choices_for_param(param_name: str) -> list[str]:
             enum_cls = params[param_name].annotation
             members.update(m.lower() for m in enum_cls.__members__)
     return sorted(members)
+
+
+def _choices_help(label: str, param_name: str) -> str:
+    """Build a help string listing all choices for a language param."""
+    choices = ", ".join(
+        _all_choices_for_param(param_name=param_name),
+    )
+    return f"{label} (language-specific). Choices: {choices}."
+
+
+_SEQUENCE_FORMAT_HELP = _choices_help(
+    label="Sequence format",
+    param_name="sequence_format",
+)
+_SET_FORMAT_HELP = _choices_help(
+    label="Set format",
+    param_name="set_format",
+)
+_DATE_FORMAT_HELP = _choices_help(
+    label="Date format",
+    param_name="date_format",
+)
+_DATETIME_FORMAT_HELP = _choices_help(
+    label="Datetime format",
+    param_name="datetime_format",
+)
+_BYTES_FORMAT_HELP = _choices_help(
+    label="Bytes format",
+    param_name="bytes_format",
+)
+_COMMENT_FORMAT_HELP = _choices_help(
+    label="Comment format",
+    param_name="comment_format",
+)
+_VARIABLE_TYPE_HINTS_HELP = _choices_help(
+    label="Variable type hints",
+    param_name="variable_type_hints",
+)
+_EMPTY_DICT_KEY_HELP = _choices_help(
+    label="Empty dict key handling",
+    param_name="empty_dict_key",
+)
 
 
 def _resolve_language_option(
@@ -171,58 +213,42 @@ def literalize_input(
 @click.option(
     "--sequence-format",
     default=None,
-    help="Sequence format (language-specific). Choices: "
-    + ", ".join(_all_choices_for_param("sequence_format"))
-    + ".",
+    help=_SEQUENCE_FORMAT_HELP,
 )
 @click.option(
     "--set-format",
     default=None,
-    help="Set format (language-specific). Choices: "
-    + ", ".join(_all_choices_for_param("set_format"))
-    + ".",
+    help=_SET_FORMAT_HELP,
 )
 @click.option(
     "--date-format",
     default=None,
-    help="Date format (language-specific). Choices: "
-    + ", ".join(_all_choices_for_param("date_format"))
-    + ".",
+    help=_DATE_FORMAT_HELP,
 )
 @click.option(
     "--datetime-format",
     default=None,
-    help="Datetime format (language-specific). Choices: "
-    + ", ".join(_all_choices_for_param("datetime_format"))
-    + ".",
+    help=_DATETIME_FORMAT_HELP,
 )
 @click.option(
     "--bytes-format",
     default=None,
-    help="Bytes format (language-specific). Choices: "
-    + ", ".join(_all_choices_for_param("bytes_format"))
-    + ".",
+    help=_BYTES_FORMAT_HELP,
 )
 @click.option(
     "--comment-format",
     default=None,
-    help="Comment format (language-specific). Choices: "
-    + ", ".join(_all_choices_for_param("comment_format"))
-    + ".",
+    help=_COMMENT_FORMAT_HELP,
 )
 @click.option(
     "--variable-type-hints",
     default=None,
-    help="Variable type hints (language-specific). Choices: "
-    + ", ".join(_all_choices_for_param("variable_type_hints"))
-    + ".",
+    help=_VARIABLE_TYPE_HINTS_HELP,
 )
 @click.option(
     "--empty-dict-key",
     default=None,
-    help="Empty dict key handling (language-specific). Choices: "
-    + ", ".join(_all_choices_for_param("empty_dict_key"))
-    + ".",
+    help=_EMPTY_DICT_KEY_HELP,
 )
 def main(
     language: str,
