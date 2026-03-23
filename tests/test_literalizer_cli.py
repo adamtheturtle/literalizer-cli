@@ -153,7 +153,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
         ExceptionCase(
             input_format="json",
             input_string='[1, "a"]\n',
-            language=Rust(sequence_format=Rust.SequenceFormats.VEC),  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType,reportUnknownArgumentType]
+            language=Rust(sequence_format=Rust.sequence_formats.VEC),
             error_on_coercion=True,
             expected=(
                 "Collection contains heterogeneous scalar types "
@@ -163,7 +163,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
         ExceptionCase(
             input_format="json",
             input_string="[null]\n",
-            language=Java(sequence_format=Java.SequenceFormats.LIST),  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType,reportUnknownArgumentType]
+            language=Java(sequence_format=Java.sequence_formats.LIST),
             error_on_coercion=False,
             expected=(
                 "Java's List.of() does not accept null elements. "
