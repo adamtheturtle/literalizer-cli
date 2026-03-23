@@ -375,6 +375,7 @@ dev = [
 release = [
     { name = "check-wheel-contents" },
     { name = "homebrew-pypi-poet" },
+    { name = "setuptools" },
 ]
 
 [package.metadata]
@@ -397,6 +398,7 @@ requires-dist = [
     { name = "pytest-regressions", marker = "extra == 'dev'", specifier = "==2.10.0" },
     { name = "pyyaml", marker = "extra == 'dev'", specifier = "==6.0.3" },
     { name = "ruff", marker = "extra == 'dev'", specifier = "==0.15.7" },
+    { name = "setuptools", marker = "extra == 'release'" },
     { name = "shellcheck-py", marker = "extra == 'dev'", specifier = "==0.11.0.1" },
     { name = "shfmt-py", marker = "extra == 'dev'", specifier = "==3.12.0.2" },
     { name = "ty", marker = "extra == 'dev'", specifier = "==0.0.24" },
