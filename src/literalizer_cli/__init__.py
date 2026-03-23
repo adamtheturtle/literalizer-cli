@@ -20,14 +20,6 @@ _LANGUAGE_MAP = {
 
 _INPUT_FORMATS = ("json", "yaml")
 
-_LITERALIZER_EXCEPTIONS = tuple(
-    value
-    for value in vars(literalizer.exceptions).values()
-    if isinstance(value, type)
-    and issubclass(value, Exception)
-    and value.__module__ == literalizer.exceptions.__name__
-)
-
 _INDENT = "    "
 
 
@@ -61,7 +53,17 @@ def literalize_input(
             new_variable=True,
             error_on_coercion=error_on_coercion,
         )
-    except _LITERALIZER_EXCEPTIONS as exc:
+    except literalizer.exceptions.JSONParseError as exc:
+        raise click.ClickException(message=str(exc)) from None
+    except literalizer.exceptions.YAMLParseError as exc:
+        raise click.ClickException(message=str(exc)) from None
+    except literalizer.exceptions.ParseError as exc:
+        raise click.ClickException(message=str(exc)) from None
+    except literalizer.exceptions.EmptyDictKeyError as exc:
+        raise click.ClickException(message=str(exc)) from None
+    except literalizer.exceptions.HeterogeneousCoercionError as exc:
+        raise click.ClickException(message=str(exc)) from None
+    except literalizer.exceptions.NullInCollectionError as exc:
         raise click.ClickException(message=str(exc)) from None
 
 
