@@ -172,8 +172,6 @@ def literalize_input(
         raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.YAMLParseError as exc:
         raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.ParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.EmptyDictKeyError as exc:
         raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.HeterogeneousCoercionError as exc:
@@ -331,7 +329,3 @@ def main(
         for preamble_line in result.preamble:
             click.echo(message=preamble_line)
     click.echo(message=result.code)
-
-
-if __name__ == "__main__":
-    main()

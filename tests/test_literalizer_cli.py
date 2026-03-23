@@ -265,7 +265,11 @@ def test_error_on_coercion() -> None:
         color=True,
     )
     assert result.exit_code == 1
-    assert "coerced to strings" in result.output
+    expected = (
+        "Error: Collection contains heterogeneous scalar types "
+        "that would be coerced to strings\n"
+    )
+    assert result.output == expected
 
 
 def test_invalid_json_is_shown_cleanly() -> None:
@@ -441,7 +445,15 @@ def test_set_format() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert "frozenset" in result.output
+    expected = textwrap.dedent(
+        text="""\
+        frozenset({
+            "a",
+            "b",
+        })
+    """
+    )
+    assert result.output == expected
 
 
 def test_empty_dict_key_via_cli() -> None:
@@ -482,7 +494,13 @@ def test_language_option_unsupported_for_language() -> None:
         color=True,
     )
     assert result.exit_code != 0
-    assert "not supported" in result.output
+    expected = (
+        "Usage: literalize [OPTIONS]\n"
+        "Try 'literalize --help' for help.\n"
+        "\n"
+        "Error: --empty-dict-key is not supported for language 'python'.\n"
+    )
+    assert result.output == expected
 
 
 def test_language_option_invalid_value() -> None:
@@ -503,7 +521,44 @@ def test_language_option_invalid_value() -> None:
         color=True,
     )
     assert result.exit_code != 0
-    assert "Invalid value" in result.output
+    expected = (
+        "Usage: literalize [OPTIONS]\n"
+        "Try 'literalize --help' for help.\n"
+        "\n"
+        "Error: Invalid value 'invalid' for "
+        "--sequence-format. Valid choices: list, tuple.\n"
+    )
+    assert result.output == expected
+
+
+def test_include_preamble() -> None:
+    """--include-preamble outputs language preamble before the code."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "go",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+            "--include-preamble",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    expected = textwrap.dedent(
+        text="""\
+        package main
+        data := map[string]int{
+            "a": 1,
+        }
+    """
+    )
+    assert result.output == expected
 
 
 def test_sequence_format_case_insensitive() -> None:
@@ -524,4 +579,12 @@ def test_sequence_format_case_insensitive() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output.startswith("[")
+    expected = textwrap.dedent(
+        text="""\
+        [
+            1,
+            2,
+        ]
+    """
+    )
+    assert result.output == expected
