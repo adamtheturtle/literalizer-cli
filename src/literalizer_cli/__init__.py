@@ -1,6 +1,6 @@
 """CLI for literalizer - convert data to native language literal syntax."""
 
-import inspect
+import enum
 import sys
 from importlib.metadata import PackageNotFoundError, version
 
@@ -23,69 +23,83 @@ _INPUT_FORMATS = ("json", "yaml")
 
 _INDENT = "    "
 
+# Map from CLI option name to the class attribute holding the enum.
+_OPTION_TO_ATTR: dict[str, str] = {
+    "sequence_format": "sequence_formats",
+    "set_format": "set_formats",
+    "date_format": "date_formats",
+    "datetime_format": "datetime_formats",
+    "bytes_format": "bytes_formats",
+    "comment_format": "comment_formats",
+    "variable_type_hints": "variable_type_hints_formats",
+    "empty_dict_key": "EmptyDictKey",
+}
 
-def _get_language_init_params(
+
+def _get_enum_for_option(
+    *,
     lang_cls: LanguageCls,
-) -> dict[str, inspect.Parameter]:
-    """Get the public init parameters for a language class."""
-    sig = inspect.signature(obj=lang_cls.__init__)  # type: ignore[misc]
-    return {
-        name: param
-        for name, param in sig.parameters.items()
-        if name != "self" and not name.startswith("_")
-    }
+    option_name: str,
+) -> type[enum.Enum] | None:
+    """Get the enum class for a language option, or None."""
+    attr = _OPTION_TO_ATTR[option_name]
+    if not hasattr(lang_cls, attr):
+        return None
+    return getattr(lang_cls, attr)  # type: ignore[no-any-return]
 
 
-def _all_choices_for_param(param_name: str) -> list[str]:
-    """Collect all valid enum member names for a param across languages."""
+def _all_choices_for_option(option_name: str) -> list[str]:
+    """Collect all valid enum member names for an option."""
     members: set[str] = set()
     for lang_cls in ALL_LANGUAGES:
-        params = _get_language_init_params(lang_cls=lang_cls)
-        if param_name in params:
-            enum_cls = params[param_name].annotation
+        enum_cls = _get_enum_for_option(
+            lang_cls=lang_cls,
+            option_name=option_name,
+        )
+        if enum_cls is not None:
             members.update(m.lower() for m in enum_cls.__members__)
     return sorted(members)
 
 
-def _choices_help(label: str, param_name: str) -> str:
-    """Build a help string listing all choices for a language param."""
+def _choices_help(label: str, option_name: str) -> str:
+    """Build a help string listing all choices for a language option."""
     choices = ", ".join(
-        _all_choices_for_param(param_name=param_name),
+        _all_choices_for_option(option_name=option_name),
     )
     return f"{label} (language-specific). Choices: {choices}."
 
 
 _SEQUENCE_FORMAT_HELP = _choices_help(
     label="Sequence format",
-    param_name="sequence_format",
+    option_name="sequence_format",
 )
 _SET_FORMAT_HELP = _choices_help(
     label="Set format",
-    param_name="set_format",
+    option_name="set_format",
 )
 _DATE_FORMAT_HELP = _choices_help(
     label="Date format",
-    param_name="date_format",
+    option_name="date_format",
 )
 _DATETIME_FORMAT_HELP = _choices_help(
     label="Datetime format",
-    param_name="datetime_format",
+    option_name="datetime_format",
 )
 _BYTES_FORMAT_HELP = _choices_help(
     label="Bytes format",
-    param_name="bytes_format",
+    option_name="bytes_format",
 )
 _COMMENT_FORMAT_HELP = _choices_help(
     label="Comment format",
-    param_name="comment_format",
+    option_name="comment_format",
 )
 _VARIABLE_TYPE_HINTS_HELP = _choices_help(
     label="Variable type hints",
-    param_name="variable_type_hints",
+    option_name="variable_type_hints",
 )
 _EMPTY_DICT_KEY_HELP = _choices_help(
     label="Empty dict key handling",
-    param_name="empty_dict_key",
+    option_name="empty_dict_key",
 )
 
 
@@ -94,16 +108,18 @@ def _resolve_language_option(
     lang_cls: LanguageCls,
     option_name: str,
     value: str,
-) -> object:
+) -> enum.Enum:
     """Resolve a CLI string value to a language enum member."""
-    params = _get_language_init_params(lang_cls=lang_cls)
-    if option_name not in params:
+    enum_cls = _get_enum_for_option(
+        lang_cls=lang_cls,
+        option_name=option_name,
+    )
+    if enum_cls is None:
         lang_name = lang_cls.__name__.lower()
         raise click.UsageError(
             message=f"--{option_name.replace('_', '-')} is not supported "
             f"for language '{lang_name}'.",
         )
-    enum_cls = params[option_name].annotation
     upper_value = value.upper()
     if upper_value not in enum_cls.__members__:
         choices = ", ".join(sorted(enum_cls.__members__))
