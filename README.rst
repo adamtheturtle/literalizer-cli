@@ -115,13 +115,10 @@ Usage example
    echo '[1, 2, 3]' | literalize --language rust
    echo '{"key": "value"}' | literalize --language go
 
-Development
------------
+Full documentation
+------------------
 
-.. code-block:: shell
-
-   uv sync --extra dev
-   uv run pytest
+See the `full documentation <https://adamtheturtle.github.io/literalizer-cli/>`__.
 
 .. |Build Status| image:: https://github.com/adamtheturtle/literalizer-cli/actions/workflows/ci.yml/badge.svg?branch=main
    :target: https://github.com/adamtheturtle/literalizer-cli/actions

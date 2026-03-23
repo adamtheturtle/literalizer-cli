@@ -1,0 +1,1 @@
+"""Documentation for ``literalizer-cli``."""

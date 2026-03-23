@@ -11,6 +11,7 @@ ci:
     - actionlint
     - check-manifest
     - deptry
+    - docs
     - mypy
     - pyproject-fmt-fix
     - pyrefly
@@ -19,6 +20,7 @@ ci:
     - ruff-format-fix
     - shellcheck
     - shfmt
+    - sphinx-lint
     - ty
     - uv-lock
     - yamlfix
@@ -187,6 +189,23 @@ repos:
         language: python
         pass_filenames: false
         types_or: [yaml]
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: docs
+        name: Build Documentation
+        entry: uv run --extra=dev sphinx-build -M html docs/source docs/build -W
+        language: python
+        stages: [manual]
+        pass_filenames: false
+        additional_dependencies: [uv==0.9.5]
+
+      - id: sphinx-lint
+        name: sphinx-lint
+        entry: uv run --extra=dev sphinx-lint --enable=all --disable=line-too-long
+          --ignore=docs/build
+        language: python
+        types_or: [rst]
         additional_dependencies: [uv==0.9.5]
         stages: [pre-commit]
 
