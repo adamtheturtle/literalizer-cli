@@ -88,19 +88,30 @@ lint.select = [
     "ALL",
 ]
 lint.ignore = [
+    # We can manage our own complexity.
     "C901",
+    # Ruff warns that this conflicts with the formatter.
     "COM812",
+    # Allow our chosen docstring line-style - pydocstringformatter handles formatting
+    # but doesn't enforce D205 (blank line after summary) or D212 (summary on first line).
     "D205",
     "D212",
+    # Ruff warns that this conflicts with the formatter.
     "ISC001",
+    # Ignore 'too-many-*' errors as they seem to get in the way more than
+    # helping.
     "PLR0912",
     "PLR0913",
     "PLR0915",
 ]
 lint.per-file-ignores."tests/*.py" = [
     "PT018",
+    # Allow asserts in tests.
     "S101",
 ]
+# Do not automatically remove commented out code.
+# We comment out code during development, and with VSCode auto-save, this code
+# is sometimes annoyingly removed.
 lint.unfixable = [
     "ERA001",
 ]
@@ -164,7 +175,9 @@ reportUnnecessaryTypeIgnoreComment = true
 typeCheckingMode = "strict"
 
 [tool.ty]
+# Disable support for `type: ignore` comments
 analysis.respect-type-ignore-comments = false
+# Error if ty emits any warning-level diagnostics.
 terminal.error-on-warning = true
 
 [tool.pytest]
