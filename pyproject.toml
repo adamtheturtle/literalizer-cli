@@ -43,7 +43,7 @@ optional-dependencies.dev = [
     "mypy[faster-cache]==1.19.1",
     "prek==0.3.5",
     "pyproject-fmt==2.18.1",
-    "pyrefly==0.56.0",
+    "pyrefly==0.57.1",
     "pyright==1.1.408",
     "pytest==9.0.2",
     "pytest-cov==7.0.0",
