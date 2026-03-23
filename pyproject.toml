@@ -41,7 +41,7 @@ optional-dependencies.dev = [
     "check-manifest==0.51",
     "deptry==0.24.0",
     "mypy[faster-cache]==1.19.1",
-    "prek==0.3.5",
+    "prek==0.3.8",
     "pyproject-fmt==2.18.1",
     "pyrefly==0.56.0",
     "pyright==1.1.408",
