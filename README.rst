@@ -1,66 +1,130 @@
+|Build Status| |PyPI|
+
 literalizer-cli
 ================
 
 CLI for literalizer - convert data structures to native language literal syntax.
 
+.. contents::
+   :local:
+
 Installation
 ------------
 
-pip
-~~~
+With ``pip``
+^^^^^^^^^^^^
 
-Requires Python 3.11+.
+Requires Python |minimum-python-version|\+.
 
 .. code-block:: shell
 
    pip install literalizer-cli
 
-Homebrew (macOS/Linux)
-~~~~~~~~~~~~~~~~~~~~~~
+With Homebrew (macOS, Linux, WSL)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Requires `Homebrew`_.
 
 .. code-block:: shell
 
    brew tap adamtheturtle/literalizer-cli
    brew install literalizer-cli
 
-Pre-built binaries
-~~~~~~~~~~~~~~~~~~
+.. _Homebrew: https://docs.brew.sh/Installation
 
-Download the latest binary for your platform from the
-`GitHub releases page <https://github.com/adamtheturtle/literalizer-cli/releases/latest>`__.
+With winget (Windows)
+^^^^^^^^^^^^^^^^^^^^^
 
-Linux:
-
-.. code-block:: shell
-
-   curl -L https://github.com/adamtheturtle/literalizer-cli/releases/download/2026.03.23/literalize-linux -o literalize
-   chmod +x literalize
-
-Docker
-~~~~~~
+Requires `winget`_.
 
 .. code-block:: shell
 
-   docker run --rm -i ghcr.io/adamtheturtle/literalizer-cli:latest literalize
+   winget install --id adamtheturtle.literalizer-cli --source winget --exact
 
-Nix
-~~~
+The winget package may not be the latest version.
+
+.. _winget: https://learn.microsoft.com/en-us/windows/package-manager/winget/
+
+Pre-built Linux (x86) binaries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: console
+
+   $ curl --fail -L https://github.com/adamtheturtle/literalizer-cli/releases/latest/download/literalize-linux -o /usr/local/bin/literalize &&
+       chmod +x /usr/local/bin/literalize
+
+Pre-built macOS (ARM) binaries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: console
+
+   $ curl --fail -L https://github.com/adamtheturtle/literalizer-cli/releases/latest/download/literalize-macos -o /usr/local/bin/literalize &&
+       chmod +x /usr/local/bin/literalize
+
+You may need to remove the quarantine attribute to run the binary:
+
+.. code-block:: console
+
+   $ xattr -d com.apple.quarantine /usr/local/bin/literalize
+
+Pre-built Windows binaries
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Download the Windows executable from the `latest release`_ and place it in a directory on your ``PATH``.
+
+.. _latest release: https://github.com/adamtheturtle/literalizer-cli/releases/latest
+
+With Docker
+^^^^^^^^^^^
+
+.. code-block:: console
+
+   $ docker run --rm -i ghcr.io/adamtheturtle/literalizer-cli:latest literalize --help
+
+With Nix
+^^^^^^^^
+
+Requires `Nix`_.
 
 .. code-block:: shell
 
-   nix run github:adamtheturtle/literalizer-cli/2026.03.23
+   nix --extra-experimental-features 'nix-command flakes' run "github:adamtheturtle/literalizer-cli" -- --help
 
-winget (Windows)
-~~~~~~~~~~~~~~~~
+To avoid passing ``--extra-experimental-features`` every time, `enable flakes`_ permanently.
+
+.. _Nix: https://nixos.org/download/
+.. _enable flakes: https://wiki.nixos.org/wiki/Flakes#Enabling_flakes_permanently
+
+Or add to your flake inputs:
+
+.. code-block:: nix
+
+   {
+     inputs.literalizer-cli.url = "github:adamtheturtle/literalizer-cli";
+   }
+
+Usage example
+-------------
 
 .. code-block:: shell
 
-   winget install adamtheturtle.literalizer-cli
+   # Convert JSON on stdin to a Python literal
+   echo '{"name": "Alice", "age": 30}' | literalize --language python
+
+   # Convert to multiple languages
+   echo '[1, 2, 3]' | literalize --language rust
+   echo '{"key": "value"}' | literalize --language go
 
 Development
 -----------
 
 .. code-block:: shell
 
-   $ uv sync --extra dev
-   $ uv run pytest
+   uv sync --extra dev
+   uv run pytest
+
+.. |Build Status| image:: https://github.com/adamtheturtle/literalizer-cli/actions/workflows/ci.yml/badge.svg?branch=main
+   :target: https://github.com/adamtheturtle/literalizer-cli/actions
+.. |PyPI| image:: https://badge.fury.io/py/literalizer-cli.svg
+   :target: https://badge.fury.io/py/literalizer-cli
+.. |minimum-python-version| replace:: 3.12
