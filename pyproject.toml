@@ -127,29 +127,11 @@ ignore = [
 pep621_dev_dependency_groups = [
     "dev",
 ]
-per_rule_ignores.DEP002 = [ "literalizer" ]  # TDD: used when implementing test_literalize_json_to_python
 
 [tool.pyproject-fmt]
 indent = 4
 keep_full_version = true
 max_supported_python = "3.14"
-
-[tool.pytest]
-xfail_strict = true
-log_cli = true
-
-[tool.coverage]
-run.branch = true
-run.omit = [
-    "src/*/_setuptools_scm_version.py",
-    "src/literalizer_cli/__main__.py",
-]
-report.exclude_also = [
-    "@overload",
-    "class .*\\bProtocol\\):",
-    "if TYPE_CHECKING:",
-]
-report.show_missing = true
 
 [tool.mypy]
 strict = true
@@ -168,6 +150,23 @@ typeCheckingMode = "strict"
 [tool.ty]
 analysis.respect-type-ignore-comments = false
 terminal.error-on-warning = true
+
+[tool.pytest]
+xfail_strict = true
+log_cli = true
+
+[tool.coverage]
+run.branch = true
+run.omit = [
+    "src/*/_setuptools_scm_version.py",
+    "src/literalizer_cli/__main__.py",
+]
+report.exclude_also = [
+    "@overload",
+    "class .*\\bProtocol\\):",
+    "if TYPE_CHECKING:",
+]
+report.show_missing = true
 
 [tool.yamlfix]
 section_whitelines = 1
