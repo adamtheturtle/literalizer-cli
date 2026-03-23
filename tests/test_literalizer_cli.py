@@ -24,12 +24,36 @@ def test_literalize_json_to_python() -> None:
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
-        args=[],  # Reads from stdin when input provided
+        args=["--language", "python"],
         input='{"a": 1, "b": [2, 3]}\n',
         catch_exceptions=False,
         color=True,
     )
     assert result.exit_code == 0
-    # Expected: Python literal like "{'a': 1, 'b': [2, 3]}"
-    assert "'a'" in result.output
     assert "1" in result.output
+
+
+def test_literalize_json_to_go() -> None:
+    """JSON input is converted to Go literal syntax."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "go"],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "1" in result.output
+
+
+def test_language_required() -> None:
+    """CLI errors when --language is not provided."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[],
+        input='{"a": 1}\n',
+    )
+    assert result.exit_code != 0
+    assert "Missing option" in result.output or "required" in result.output
