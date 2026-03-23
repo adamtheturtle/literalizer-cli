@@ -7,6 +7,8 @@ on:
   pull_request:
     branches: [main]
   schedule:
+    # * is a special character in YAML so you have to quote this string
+    # Run at 1:00 every day
     - cron: 0 1 * * *
 
 permissions: {}
@@ -15,13 +17,15 @@ jobs:
   build:
     strategy:
       matrix:
-        python-version: ['3.12', '3.13', '3.14']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
         platform: [ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.platform }}
 
     steps:
       - uses: actions/checkout@v6
+        # We need our tags in order to calculate the version
+        # in the Sphinx setup.
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -35,14 +39,16 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run --extra=dev pytest -s -vvv --cov-fail-under=80 --cov=src/
+          # We run tests against "." and not the tests directory as we test the README
+          # and documentation.
+          uv run --extra=dev pytest -s -vvv --cov-fail-under=100 --cov=src/ --cov=tests .
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
   completion-ci:
     needs: build
     runs-on: ubuntu-latest
-    if: always()
+    if: always()  # Run even if one matrix job fails
     steps:
       - name: Check matrix job status
         run: |-
