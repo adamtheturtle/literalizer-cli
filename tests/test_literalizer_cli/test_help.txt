@@ -16,4 +16,27 @@ Options:
                                   Declare a new variable.
   --error-on-coercion / --no-error-on-coercion
                                   Error on heterogeneous type coercion.
+  --sequence-format TEXT          Sequence format (language-specific). Choices:
+                                  array, cell_array, initializer_list, list,
+                                  sequence, slice, table, tuple, vec, vector.
+  --set-format TEXT               Set format (language-specific). Choices:
+                                  frozenset, hash_set, map_set, set.
+  --date-format TEXT              Date format (language-specific). Choices: cpp,
+                                  csharp, dart, go, iso, java, js, julia,
+                                  kotlin, objc, php, python, r, ruby, rust,
+                                  toml, yaml.
+  --datetime-format TEXT          Datetime format (language-specific). Choices:
+                                  cpp, csharp, dart, epoch, go, instant, iso,
+                                  js, julia, kotlin, objc, php, python, r, ruby,
+                                  rust, toml, yaml, zoned.
+  --bytes-format TEXT             Bytes format (language-specific). Choices:
+                                  binary, hex, python.
+  --comment-format TEXT           Comment format (language-specific). Choices:
+                                  apostrophe, block, double_dash, double_slash,
+                                  exclamation, hash, paren_star, percent,
+                                  semicolon, star_angle.
+  --variable-type-hints TEXT      Variable type hints (language-specific).
+                                  Choices: inline, none.
+  --empty-dict-key TEXT           Empty dict key handling (language-specific).
+                                  Choices: error, positional.
   --help                          Show this message and exit.

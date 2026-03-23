@@ -391,3 +391,137 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
         )
 
     assert exc_info.value.message == case.expected
+
+
+def test_sequence_format() -> None:
+    """--sequence-format changes the sequence representation."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--sequence-format",
+            "list",
+        ],
+        input="[1, 2, 3]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    expected = textwrap.dedent(
+        text="""\
+        [
+            1,
+            2,
+            3,
+        ]
+    """
+    )
+    assert result.output == expected
+
+
+def test_set_format() -> None:
+    """--set-format changes the set representation."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "yaml",
+            "--set-format",
+            "frozenset",
+        ],
+        input="!!set\n  a:\n  b:\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "frozenset" in result.output
+
+
+def test_empty_dict_key_via_cli() -> None:
+    """--empty-dict-key changes empty dict key handling."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "r",
+            "-f",
+            "json",
+            "--empty-dict-key",
+            "positional",
+        ],
+        input='{"": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+
+
+def test_language_option_unsupported_for_language() -> None:
+    """Error when a language option is not supported for the language."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--empty-dict-key",
+            "positional",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    assert "not supported" in result.output
+
+
+def test_language_option_invalid_value() -> None:
+    """Error when a language option value is not valid."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--sequence-format",
+            "invalid",
+        ],
+        input="[1]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    assert "Invalid value" in result.output
+
+
+def test_sequence_format_case_insensitive() -> None:
+    """--sequence-format accepts values case-insensitively."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--sequence-format",
+            "LIST",
+        ],
+        input="[1, 2]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert result.output.startswith("[")
