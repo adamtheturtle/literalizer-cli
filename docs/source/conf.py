@@ -19,6 +19,7 @@ project = _pyproject_config.name
 author = _pyproject_config.author
 
 extensions = [
+    "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinxcontrib.spelling",
     "sphinx_click.ext",
