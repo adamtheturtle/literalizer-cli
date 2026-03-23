@@ -1,6 +1,5 @@
 """Tests for literalizer_cli."""
 
-import pytest
 from click.testing import CliRunner
 
 from literalizer_cli import main
@@ -20,7 +19,6 @@ def test_help() -> None:
     assert "Convert data structures" in result.output
 
 
-@pytest.mark.xfail(reason="TDD: implement JSON-to-Python via literalizer")
 def test_literalize_json_to_python() -> None:
     """JSON input is converted to Python literal syntax."""
     runner = CliRunner()
