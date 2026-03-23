@@ -50,7 +50,7 @@ Pre-built Linux (x86) binaries
 
 .. code-block:: console
 
-   $ curl --fail -L https://github.com/adamtheturtle/literalizer-cli/releases/latest/download/literalize-linux -o /usr/local/bin/literalize &&
+   $ curl --fail -L https://github.com/adamtheturtle/literalizer-cli/releases/download/2024.01.01/literalize-linux -o /usr/local/bin/literalize &&
        chmod +x /usr/local/bin/literalize
 
 Pre-built macOS (ARM) binaries
@@ -58,7 +58,7 @@ Pre-built macOS (ARM) binaries
 
 .. code-block:: console
 
-   $ curl --fail -L https://github.com/adamtheturtle/literalizer-cli/releases/latest/download/literalize-macos -o /usr/local/bin/literalize &&
+   $ curl --fail -L https://github.com/adamtheturtle/literalizer-cli/releases/download/2024.01.01/literalize-macos -o /usr/local/bin/literalize &&
        chmod +x /usr/local/bin/literalize
 
 You may need to remove the quarantine attribute to run the binary:
@@ -88,7 +88,7 @@ Requires `Nix`_.
 
 .. code-block:: shell
 
-   nix --extra-experimental-features 'nix-command flakes' run "github:adamtheturtle/literalizer-cli" -- --help
+   nix --extra-experimental-features 'nix-command flakes' run "github:adamtheturtle/literalizer-cli/2024.01.01" -- --help
 
 To avoid passing ``--extra-experimental-features`` every time, `enable flakes`_ permanently.
 
@@ -102,6 +102,21 @@ Or add to your flake inputs:
    {
      inputs.literalizer-cli.url = "github:adamtheturtle/literalizer-cli";
    }
+
+Using ``literalize`` as a pre-commit hook
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To run ``literalize`` with `pre-commit`_, add hooks like the following to your ``.pre-commit-config.yaml``:
+
+.. code-block:: yaml
+
+   -   repo: https://github.com/adamtheturtle/literalizer-cli-pre-commit
+       rev: v2024.1.1
+       hooks:
+       -   id: literalize
+           args: ["--language", "python"]
+
+.. _pre-commit: https://pre-commit.com
 
 Usage example
 -------------
