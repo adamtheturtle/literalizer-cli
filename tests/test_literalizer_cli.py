@@ -1,9 +1,31 @@
 """Tests for literalizer_cli."""
 
+from dataclasses import dataclass
+from typing import Any, cast
+
+import pytest
+from click import ClickException
 from click.testing import CliRunner
+from literalizer._language import Language
+from literalizer.languages import Java, Python, R, Rust
 from pytest_regressions.file_regression import FileRegressionFixture
 
+import literalizer_cli
 from literalizer_cli import main
+
+RUST_SEQUENCE_FORMATS = cast("Any", Rust.SequenceFormats)
+JAVA_SEQUENCE_FORMATS = cast("Any", Java.SequenceFormats)
+
+
+@dataclass(frozen=True)
+class ExceptionCase:
+    """A real literalizer failure case and its expected CLI message."""
+
+    input_format: str
+    input_string: str
+    language: Language
+    error_on_coercion: bool
+    expected: str
 
 
 def test_help(file_regression: FileRegressionFixture) -> None:
@@ -77,3 +99,123 @@ def test_literalize_yaml_short_flag() -> None:
     )
     assert result.exit_code == 0
     assert result.output == 'map[string]int{\n    "a": 1,\n}\n'
+
+
+def test_invalid_json_is_shown_cleanly() -> None:
+    """JSON parse failures are shown as CLI errors."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--language", "python", "--input-format", "json"],
+        input='{"a": }\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    expected = "Error: Invalid JSON: Expecting value at line 1 column 7\n"
+    assert result.output == expected
+
+
+def test_invalid_yaml_is_shown_cleanly() -> None:
+    """YAML parse failures are shown as CLI errors."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--language", "python", "--input-format", "yaml"],
+        input="a: [1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    expected = (
+        "Error: Invalid YAML: while parsing a flow sequence\n"
+        '  in "<unicode string>", line 1, column 4:\n'
+        "    a: [1\n"
+        "       ^ (line: 1)\n"
+        "expected ',' or ']', but got '<stream end>'\n"
+        '  in "<unicode string>", line 2, column 1:\n'
+        "    \n"
+        "    ^ (line: 2)\n"
+    )
+    assert result.output == expected
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        ExceptionCase(
+            input_format="json",
+            input_string='{"": 1}\n',
+            language=R(empty_dict_key=R.EmptyDictKey.ERROR),
+            error_on_coercion=False,
+            expected=(
+                "R does not support empty-string dict keys. "
+                "Use empty_dict_key=R.EmptyDictKey.POSITIONAL to emit them "
+                "as unnamed list elements instead."
+            ),
+        ),
+        ExceptionCase(
+            input_format="json",
+            input_string='[1, "a"]\n',
+            language=Rust(sequence_format=RUST_SEQUENCE_FORMATS.VEC),
+            error_on_coercion=True,
+            expected=(
+                "Collection contains heterogeneous scalar types "
+                "that would be coerced to strings"
+            ),
+        ),
+        ExceptionCase(
+            input_format="json",
+            input_string="[null]\n",
+            language=Java(sequence_format=JAVA_SEQUENCE_FORMATS.LIST),
+            error_on_coercion=False,
+            expected=(
+                "Java's List.of() does not accept null elements. "
+                "Use sequence_format=ARRAY instead."
+            ),
+        ),
+        ExceptionCase(
+            input_format="json",
+            input_string='{"a": }\n',
+            language=Python(),
+            error_on_coercion=False,
+            expected="Invalid JSON: Expecting value at line 1 column 7",
+        ),
+        ExceptionCase(
+            input_format="yaml",
+            input_string="a: [1\n",
+            language=Python(),
+            error_on_coercion=False,
+            expected=(
+                "Invalid YAML: while parsing a flow sequence\n"
+                '  in "<unicode string>", line 1, column 4:\n'
+                "    a: [1\n"
+                "       ^ (line: 1)\n"
+                "expected ',' or ']', but got '<stream end>'\n"
+                '  in "<unicode string>", line 2, column 1:\n'
+                "    \n"
+                "    ^ (line: 2)"
+            ),
+        ),
+    ],
+    ids=(
+        "empty_dict_key",
+        "heterogeneous_coercion",
+        "null_in_collection",
+        "json_parse",
+        "yaml_parse",
+    ),
+)
+def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
+    case: ExceptionCase,
+) -> None:
+    """Real literalizer exceptions are surfaced as Click exceptions."""
+    with pytest.raises(ClickException) as exc_info:
+        literalizer_cli.literalize_input(
+            input_string=case.input_string,
+            language=case.language,
+            input_format=case.input_format,
+            error_on_coercion=case.error_on_coercion,
+        )
+
+    assert exc_info.value.message == case.expected
