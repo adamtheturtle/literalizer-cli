@@ -34,7 +34,7 @@ def test_literalize_json_to_python() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert "1" in result.output
+    assert result.output == '{\n    "a": 1,\n    "b": (2, 3),\n}\n'
 
 
 def test_literalize_json_to_go() -> None:
@@ -48,7 +48,7 @@ def test_literalize_json_to_go() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert "1" in result.output
+    assert result.output == 'map[string]int{\n    "a": 1,\n}\n'
 
 
 def test_literalize_yaml_to_python() -> None:
@@ -62,7 +62,7 @@ def test_literalize_yaml_to_python() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert "1" in result.output
+    assert result.output == '{\n    "a": 1,\n    "b": (2, 3),\n}\n'
 
 
 def test_literalize_yaml_short_flag() -> None:
@@ -76,4 +76,4 @@ def test_literalize_yaml_short_flag() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert "1" in result.output
+    assert result.output == 'map[string]int{\n    "a": 1,\n}\n'
