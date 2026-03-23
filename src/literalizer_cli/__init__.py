@@ -6,7 +6,7 @@ from importlib.metadata import PackageNotFoundError, version
 
 import click
 import literalizer.exceptions
-from literalizer import literalize_json, literalize_yaml
+from literalizer import LiteralizeResult, literalize_json, literalize_yaml
 from literalizer._language import Language, LanguageCls
 from literalizer.languages import ALL_LANGUAGES
 
@@ -144,7 +144,7 @@ def literalize_input(
     variable_name: str | None,
     new_variable: bool,
     error_on_coercion: bool,
-) -> str:
+) -> LiteralizeResult:
     """Literalize input and surface literalizer errors as CLI errors."""
     try:
         if input_format == "yaml":
@@ -268,6 +268,11 @@ def literalize_input(
     default=None,
     help=_EMPTY_DICT_KEY_HELP,
 )
+@click.option(
+    "--include-preamble/--no-include-preamble",
+    default=False,
+    help="Include language preamble (e.g. package declarations, imports).",
+)
 def main(
     language: str,
     input_format: str,
@@ -285,6 +290,7 @@ def main(
     comment_format: str | None,
     variable_type_hints: str | None,
     empty_dict_key: str | None,
+    include_preamble: bool,  # noqa: FBT001
 ) -> None:
     """Convert data structures to native language literal syntax."""
     input_string = sys.stdin.read()
@@ -321,7 +327,10 @@ def main(
         new_variable=new_variable,
         error_on_coercion=error_on_coercion,
     )
-    click.echo(message=result)
+    if include_preamble:
+        for preamble_line in result.preamble:
+            click.echo(message=preamble_line)
+    click.echo(message=result.code)
 
 
 if __name__ == "__main__":

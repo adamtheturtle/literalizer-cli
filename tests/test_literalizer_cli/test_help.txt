@@ -22,13 +22,16 @@ Options:
   --set-format TEXT               Set format (language-specific). Choices:
                                   frozenset, hash_set, map_set, set.
   --date-format TEXT              Date format (language-specific). Choices: cpp,
-                                  csharp, dart, go, iso, java, js, julia,
-                                  kotlin, objc, php, python, r, ruby, rust,
-                                  toml, yaml.
+                                  csharp, dart, elixir, erlang, fsharp, go,
+                                  haskell, iso, java, js, julia, kotlin, lua,
+                                  matlab, nim, objc, ocaml, perl, php, python,
+                                  r, ruby, rust, scala, swift, toml, yaml, zig.
   --datetime-format TEXT          Datetime format (language-specific). Choices:
-                                  cpp, csharp, dart, epoch, go, instant, iso,
-                                  js, julia, kotlin, objc, php, python, r, ruby,
-                                  rust, toml, yaml, zoned.
+                                  cpp, csharp, dart, elixir, epoch, erlang,
+                                  fsharp, go, haskell, instant, iso, js, julia,
+                                  kotlin, lua, matlab, nim, objc, ocaml, perl,
+                                  php, python, r, ruby, rust, scala, swift,
+                                  toml, yaml, zig, zoned.
   --bytes-format TEXT             Bytes format (language-specific). Choices:
                                   binary, hex, python.
   --comment-format TEXT           Comment format (language-specific). Choices:
@@ -39,4 +42,7 @@ Options:
                                   Choices: inline, none.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
                                   Choices: error, positional.
+  --include-preamble / --no-include-preamble
+                                  Include language preamble (e.g. package
+                                  declarations, imports).
   --help                          Show this message and exit.
