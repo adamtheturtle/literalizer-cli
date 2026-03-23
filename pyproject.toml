@@ -51,7 +51,7 @@ optional-dependencies.dev = [
     "ruff==0.15.6",
     "shellcheck-py==0.11.0.1",
     "shfmt-py==3.12.0.2",
-    "ty==0.0.22",
+    "ty==0.0.24",
     "uv==0.9.5",
     "yamlfix==1.19.1",
     "zizmor==1.23.1",
