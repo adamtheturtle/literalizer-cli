@@ -1,7 +1,6 @@
 """Tests for literalizer_cli."""
 
 from dataclasses import dataclass
-from typing import Any, cast
 
 import pytest
 from click import ClickException
@@ -12,9 +11,6 @@ from pytest_regressions.file_regression import FileRegressionFixture
 
 import literalizer_cli
 from literalizer_cli import main
-
-RUST_SEQUENCE_FORMATS = cast("Any", Rust.SequenceFormats)
-JAVA_SEQUENCE_FORMATS = cast("Any", Java.SequenceFormats)
 
 
 @dataclass(frozen=True)
@@ -157,7 +153,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
         ExceptionCase(
             input_format="json",
             input_string='[1, "a"]\n',
-            language=Rust(sequence_format=RUST_SEQUENCE_FORMATS.VEC),
+            language=Rust(sequence_format=Rust.SequenceFormats.VEC),  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType,reportUnknownArgumentType]
             error_on_coercion=True,
             expected=(
                 "Collection contains heterogeneous scalar types "
@@ -167,7 +163,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
         ExceptionCase(
             input_format="json",
             input_string="[null]\n",
-            language=Java(sequence_format=JAVA_SEQUENCE_FORMATS.LIST),
+            language=Java(sequence_format=Java.SequenceFormats.LIST),  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType,reportUnknownArgumentType]
             error_on_coercion=False,
             expected=(
                 "Java's List.of() does not accept null elements. "
