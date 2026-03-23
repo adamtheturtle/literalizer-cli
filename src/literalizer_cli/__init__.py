@@ -122,7 +122,9 @@ def _resolve_language_option(
         )
     upper_value = value.upper()
     if upper_value not in enum_cls.__members__:
-        choices = ", ".join(sorted(enum_cls.__members__))
+        choices = ", ".join(
+            sorted(m.lower() for m in enum_cls.__members__),
+        )
         cli_name = option_name.replace("_", "-")
         raise click.UsageError(
             message=f"Invalid value '{value}' for "
