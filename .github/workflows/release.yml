@@ -145,7 +145,7 @@ jobs:
           timeout_seconds: 5
           max_attempts: 50
           command: |
-            uv run --no-cache --with="literalizer-cli==${{ steps.calver.outputs.release }}" --extra=release poet --formula literalizer-cli > ${{ steps.set-homebrew-filename.outputs.filename }}
+            uv run --no-cache --with="literalizer-cli==${{ steps.calver.outputs.release }}" --with setuptools --extra=release poet --formula literalizer-cli > ${{ steps.set-homebrew-filename.outputs.filename }}
 
       - name: Update Homebrew description
         id: update_homebrew_description
