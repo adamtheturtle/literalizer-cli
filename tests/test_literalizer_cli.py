@@ -97,6 +97,117 @@ def test_literalize_yaml_short_flag() -> None:
     assert result.output == 'map[string]int{\n    "a": 1,\n}\n'
 
 
+def test_custom_indent() -> None:
+    """Custom indent string is used in output."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "-f", "json", "--indent", "\t"],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert result.output == '{\n\t"a": 1,\n}\n'
+
+
+def test_line_prefix() -> None:
+    """Line prefix is prepended to each output line."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "-f", "json", "--line-prefix", ">>> "],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert result.output == '>>> {\n>>>     "a": 1,\n>>> }\n'
+
+
+def test_no_include_delimiters() -> None:
+    """Delimiters are omitted when --no-include-delimiters is used."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--no-include-delimiters",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert result.output == '"a": 1,\n'
+
+
+def test_variable_name() -> None:
+    """Variable name is included in output when specified."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert result.output == 'data = {\n    "a": 1,\n}\n'
+
+
+def test_no_new_variable() -> None:
+    """Existing variable assignment when --no-new-variable is used."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "go",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+            "--no-new-variable",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert result.output == 'data = map[string]int{\n    "a": 1,\n}\n'
+
+
+def test_error_on_coercion() -> None:
+    """--error-on-coercion raises error for heterogeneous types."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "rust",
+            "-f",
+            "json",
+            "--error-on-coercion",
+        ],
+        input='[1, "a"]\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert "coerced to strings" in result.output
+
+
 def test_invalid_json_is_shown_cleanly() -> None:
     """JSON parse failures are shown as CLI errors."""
     runner = CliRunner()
@@ -211,6 +322,11 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
             input_string=case.input_string,
             language=case.language,
             input_format=case.input_format,
+            line_prefix="",
+            indent="    ",
+            include_delimiters=True,
+            variable_name=None,
+            new_variable=True,
             error_on_coercion=case.error_on_coercion,
         )
 
