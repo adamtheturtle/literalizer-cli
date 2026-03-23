@@ -1,0 +1,184 @@
+---
+fail_fast: true
+
+ci:
+  skip:
+    - actionlint
+    - check-manifest
+    - deptry
+    - mypy
+    - pyproject-fmt-fix
+    - pyrefly
+    - pyright
+    - ruff-check-fix
+    - ruff-format-fix
+    - shellcheck
+    - shfmt
+    - ty
+    - uv-lock
+    - yamlfix
+    - zizmor
+
+default_install_hook_types: [pre-commit, pre-push]
+
+repos:
+  - repo: meta
+    hooks:
+      - id: check-useless-excludes
+        stages: [pre-commit]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        stages: [pre-commit]
+      - id: check-case-conflict
+        stages: [pre-commit]
+      - id: check-executables-have-shebangs
+        stages: [pre-commit]
+      - id: check-merge-conflict
+        stages: [pre-commit]
+      - id: check-shebang-scripts-are-executable
+        stages: [pre-commit]
+      - id: check-symlinks
+        stages: [pre-commit]
+      - id: check-json
+        stages: [pre-commit]
+      - id: check-toml
+        stages: [pre-commit]
+      - id: check-vcs-permalinks
+        stages: [pre-commit]
+      - id: check-yaml
+        stages: [pre-commit]
+      - id: end-of-file-fixer
+        stages: [pre-commit]
+      - id: trailing-whitespace
+        stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: actionlint
+        name: actionlint
+        entry: uv run --extra=dev actionlint
+        language: python
+        pass_filenames: false
+        types_or: [yaml]
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: check-manifest
+        name: check-manifest
+        stages: [pre-push]
+        entry: uv run --extra=dev -m check_manifest
+        language: python
+        pass_filenames: false
+        additional_dependencies: [uv==0.9.5]
+
+      - id: deptry
+        name: deptry
+        entry: uv run --extra=dev -m deptry src/
+        language: python
+        pass_filenames: false
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: mypy
+        name: mypy
+        stages: [pre-push]
+        entry: uv run --extra=dev -m mypy
+        language: python
+        types_or: [python, toml]
+        pass_filenames: false
+        additional_dependencies: [uv==0.9.5]
+
+      - id: pyproject-fmt-fix
+        name: pyproject-fmt
+        entry: uv run --extra=dev pyproject-fmt
+        language: python
+        types_or: [toml]
+        files: pyproject.toml
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: pyright
+        name: pyright
+        stages: [pre-push]
+        entry: uv run --extra=dev -m pyright .
+        language: python
+        types_or: [python, toml]
+        pass_filenames: false
+        additional_dependencies: [uv==0.9.5]
+
+      - id: ruff-check-fix
+        name: Ruff check fix
+        entry: uv run --extra=dev -m ruff check --fix
+        language: python
+        types_or: [python]
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: ruff-format-fix
+        name: Ruff format
+        entry: uv run --extra=dev -m ruff format
+        language: python
+        types_or: [python]
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: shellcheck
+        name: shellcheck
+        entry: uv run --extra=dev shellcheck --shell=bash
+        language: python
+        types_or: [shell]
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: shfmt
+        name: shfmt
+        entry: uv run --extra=dev shfmt --write --space-redirects --indent=4
+        language: python
+        types_or: [shell]
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: ty
+        name: ty
+        stages: [pre-push]
+        entry: uv run --extra=dev ty check
+        language: python
+        types_or: [python, toml]
+        pass_filenames: false
+        additional_dependencies: [uv==0.9.5]
+
+      - id: pyrefly
+        name: pyrefly
+        stages: [pre-push]
+        entry: uv run --extra=dev pyrefly check
+        language: python
+        types_or: [python, toml]
+        pass_filenames: false
+        additional_dependencies: [uv==0.9.5]
+
+      - id: yamlfix
+        name: yamlfix
+        entry: uv run --extra=dev yamlfix
+        language: python
+        types_or: [yaml]
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: zizmor
+        name: zizmor
+        entry: uv run --extra=dev zizmor --strict-collection .github
+        language: python
+        pass_filenames: false
+        types_or: [yaml]
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]
+
+      - id: uv-lock
+        name: uv lock
+        entry: uv lock --locked
+        language: python
+        pass_filenames: false
+        files: (^pyproject\.toml$|^uv\.lock$)
+        additional_dependencies: [uv==0.9.5]
+        stages: [pre-commit]

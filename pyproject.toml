@@ -1,0 +1,172 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+    "setuptools",
+    "setuptools-scm>=8.1.0",
+]
+
+[project]
+name = "literalizer-cli"
+description = "CLI for literalizer - convert data structures to native language literal syntax."
+readme = { file = "README.rst", content-type = "text/x-rst" }
+keywords = [
+    "cli",
+    "literal",
+    "literalizer",
+    "syntax",
+]
+license = "MIT"
+authors = [
+    { name = "Adam Dangoor", email = "adamdangoor@gmail.com" },
+]
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dynamic = [
+    "version",
+]
+dependencies = [
+    "click>=8.3.0,<8.4.0",
+    "literalizer",
+]
+optional-dependencies.dev = [
+    "actionlint-py==1.7.11.24",
+    "check-manifest==0.51",
+    "deptry==0.24.0",
+    "mypy[faster-cache]==1.19.1",
+    "prek==0.3.5",
+    "pyproject-fmt==2.18.1",
+    "pyrefly==0.56.0",
+    "pytest==9.0.2",
+    "pytest-cov==7.0.0",
+    "pyyaml==6.0.3",
+    "ruff==0.15.6",
+    "shellcheck-py==0.11.0.1",
+    "shfmt-py==3.12.0.2",
+    "ty==0.0.22",
+    "uv==0.9.5",
+    "yamlfix==1.19.1",
+    "zizmor==1.23.1",
+]
+urls.Source = "https://github.com/adamtheturtle/literalizer-cli"
+scripts.literalize = "literalizer_cli:main"
+
+[tool.setuptools]
+zip-safe = false
+package-data.literalizer_cli = [
+    "py.typed",
+]
+packages.find.where = [
+    "src",
+]
+
+[tool.distutils]
+bdist_wheel.universal = true
+
+[tool.setuptools_scm]
+version_file = "src/literalizer_cli/_setuptools_scm_version.py"
+version_scheme = "post-release"
+
+[tool.ruff]
+line-length = 79
+exclude = [ "**/_setuptools_scm_version.py" ]
+lint.select = [
+    "ALL",
+]
+lint.ignore = [
+    "C901",
+    "COM812",
+    "D205",
+    "D212",
+    "ISC001",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
+]
+lint.per-file-ignores."tests/*.py" = [
+    "PT018",
+    "S101",
+]
+lint.unfixable = [
+    "ERA001",
+]
+lint.pydocstyle.convention = "google"
+
+[tool.check-manifest]
+ignore = [
+    ".pre-commit-config.yaml",
+    ".vscode/**",
+    "CHANGELOG.rst",
+    "LICENSE",
+    "Makefile",
+    "admin",
+    "admin/**",
+    "ci",
+    "ci/**",
+    "conftest.py",
+    "docs",
+    "docs/**",
+    "spelling_private_dict.txt",
+    "src/*/_setuptools_scm_version.py",
+    "tests",
+    "tests/**",
+    "uv.lock",
+    "zizmor.yml",
+]
+
+[tool.deptry]
+pep621_dev_dependency_groups = [
+    "dev",
+]
+per_rule_ignores.DEP002 = [ "literalizer" ]  # TDD: used when implementing test_literalize_json_to_python
+
+[tool.pyproject-fmt]
+indent = 4
+keep_full_version = true
+max_supported_python = "3.14"
+
+[tool.pytest]
+xfail_strict = true
+log_cli = true
+
+[tool.coverage]
+run.branch = true
+run.omit = [
+    "src/*/_setuptools_scm_version.py",
+    "src/literalizer_cli/__main__.py",
+]
+report.exclude_also = [
+    "@overload",
+    "class .*\\bProtocol\\):",
+    "if TYPE_CHECKING:",
+]
+report.show_missing = true
+
+[tool.mypy]
+strict = true
+files = [ "." ]
+exclude = [ "build" ]
+follow_untyped_imports = true
+
+[tool.pyrefly]
+errors.non-exhaustive-match = "error"
+
+[tool.pyright]
+enableTypeIgnoreComments = false
+reportUnnecessaryTypeIgnoreComment = true
+typeCheckingMode = "strict"
+
+[tool.ty]
+analysis.respect-type-ignore-comments = false
+terminal.error-on-warning = true
+
+[tool.yamlfix]
+section_whitelines = 1
+whitelines = 1
