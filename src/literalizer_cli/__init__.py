@@ -4,7 +4,9 @@ import sys
 from importlib.metadata import PackageNotFoundError, version
 
 import click
+import literalizer.exceptions
 from literalizer import literalize_json, literalize_yaml
+from literalizer._language import Language
 from literalizer.languages import ALL_LANGUAGES
 
 try:
@@ -17,6 +19,50 @@ _LANGUAGE_MAP = {
 }
 
 _INPUT_FORMATS = ("json", "yaml")
+
+_LITERALIZER_EXCEPTIONS = tuple(
+    value
+    for value in vars(literalizer.exceptions).values()
+    if isinstance(value, type)
+    and issubclass(value, Exception)
+    and value.__module__ == literalizer.exceptions.__name__
+)
+
+_INDENT = "    "
+
+
+def literalize_input(
+    *,
+    input_string: str,
+    language: Language,
+    input_format: str,
+    error_on_coercion: bool,
+) -> str:
+    """Literalize input and surface literalizer errors as CLI errors."""
+    try:
+        if input_format == "yaml":
+            return literalize_yaml(
+                yaml_string=input_string,
+                language=language,
+                line_prefix="",
+                indent=_INDENT,
+                include_delimiters=True,
+                variable_name=None,
+                new_variable=True,
+                error_on_coercion=error_on_coercion,
+            )
+        return literalize_json(
+            json_string=input_string,
+            language=language,
+            line_prefix="",
+            indent=_INDENT,
+            include_delimiters=True,
+            variable_name=None,
+            new_variable=True,
+            error_on_coercion=error_on_coercion,
+        )
+    except _LITERALIZER_EXCEPTIONS as exc:
+        raise click.ClickException(message=str(exc)) from None
 
 
 @click.command(name="literalize")
@@ -40,28 +86,12 @@ def main(language: str, input_format: str) -> None:
     input_string = sys.stdin.read()
     lang_cls = _LANGUAGE_MAP[language]
     lang_instance = lang_cls()
-    if input_format == "yaml":
-        result = literalize_yaml(
-            yaml_string=input_string,
-            language=lang_instance,
-            line_prefix="",
-            indent="    ",
-            include_delimiters=True,
-            variable_name=None,
-            new_variable=True,
-            error_on_coercion=False,
-        )
-    else:
-        result = literalize_json(
-            json_string=input_string,
-            language=lang_instance,
-            line_prefix="",
-            indent="    ",
-            include_delimiters=True,
-            variable_name=None,
-            new_variable=True,
-            error_on_coercion=False,
-        )
+    result = literalize_input(
+        input_string=input_string,
+        language=lang_instance,
+        input_format=input_format,
+        error_on_coercion=False,
+    )
     click.echo(result)
 
 
