@@ -1,5 +1,6 @@
 """Tests for literalizer_cli."""
 
+import textwrap
 from dataclasses import dataclass
 
 import pytest
@@ -52,7 +53,13 @@ def test_literalize_json_to_python() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output == '{\n    "a": 1,\n    "b": (2, 3),\n}\n'
+    expected = textwrap.dedent("""\
+        {
+            "a": 1,
+            "b": (2, 3),
+        }
+    """)
+    assert result.output == expected
 
 
 def test_literalize_json_to_go() -> None:
@@ -66,7 +73,12 @@ def test_literalize_json_to_go() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output == 'map[string]int{\n    "a": 1,\n}\n'
+    expected = textwrap.dedent("""\
+        map[string]int{
+            "a": 1,
+        }
+    """)
+    assert result.output == expected
 
 
 def test_literalize_yaml_to_python() -> None:
@@ -80,7 +92,13 @@ def test_literalize_yaml_to_python() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output == '{\n    "a": 1,\n    "b": (2, 3),\n}\n'
+    expected = textwrap.dedent("""\
+        {
+            "a": 1,
+            "b": (2, 3),
+        }
+    """)
+    assert result.output == expected
 
 
 def test_literalize_yaml_short_flag() -> None:
@@ -94,7 +112,12 @@ def test_literalize_yaml_short_flag() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output == 'map[string]int{\n    "a": 1,\n}\n'
+    expected = textwrap.dedent("""\
+        map[string]int{
+            "a": 1,
+        }
+    """)
+    assert result.output == expected
 
 
 def test_custom_indent() -> None:
@@ -108,7 +131,12 @@ def test_custom_indent() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output == '{\n\t"a": 1,\n}\n'
+    expected = textwrap.dedent("""\
+        {
+        \t"a": 1,
+        }
+    """)
+    assert result.output == expected
 
 
 def test_line_prefix() -> None:
@@ -122,7 +150,12 @@ def test_line_prefix() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output == '>>> {\n>>>     "a": 1,\n>>> }\n'
+    expected = textwrap.dedent("""\
+        >>> {
+        >>>     "a": 1,
+        >>> }
+    """)
+    assert result.output == expected
 
 
 def test_no_include_delimiters() -> None:
@@ -142,7 +175,8 @@ def test_no_include_delimiters() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output == '"a": 1,\n'
+    expected = '"a": 1,\n'
+    assert result.output == expected
 
 
 def test_variable_name() -> None:
@@ -163,7 +197,12 @@ def test_variable_name() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output == 'data = {\n    "a": 1,\n}\n'
+    expected = textwrap.dedent("""\
+        data = {
+            "a": 1,
+        }
+    """)
+    assert result.output == expected
 
 
 def test_no_new_variable() -> None:
@@ -185,7 +224,12 @@ def test_no_new_variable() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    assert result.output == 'data = map[string]int{\n    "a": 1,\n}\n'
+    expected = textwrap.dedent("""\
+        data = map[string]int{
+            "a": 1,
+        }
+    """)
+    assert result.output == expected
 
 
 def test_error_on_coercion() -> None:
