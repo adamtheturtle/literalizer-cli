@@ -59,17 +59,17 @@ def literalize_input(
             error_on_coercion=error_on_coercion,
         )
     except literalizer.exceptions.JSONParseError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.YAMLParseError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.ParseError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.EmptyDictKeyError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.HeterogeneousCoercionError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.NullInCollectionError as exc:
-        raise click.ClickException(message=str(exc)) from None
+        raise click.ClickException(message=str(object=exc)) from None
 
 
 @click.command(name="literalize")
