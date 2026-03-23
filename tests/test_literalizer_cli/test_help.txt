@@ -7,4 +7,13 @@ Options:
   -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|elixir|erlang|fortran|fsharp|go|groovy|haskell|hcl|java|javascript|julia|kotlin|lua|matlab|mojo|nim|norg|objectivec|ocaml|occam|perl|php|powershell|python|r|racket|ruby|rust|scala|swift|toml|typescript|visualbasic|yaml|zig]
                                   Target language for output.  [required]
   -f, --input-format [json|yaml]  Input data format.
+  --line-prefix TEXT              Prefix for each output line.
+  --indent TEXT                   Indentation string.
+  --include-delimiters / --no-include-delimiters
+                                  Include opening/closing delimiters.
+  --variable-name TEXT            Variable name for the output assignment.
+  --new-variable / --no-new-variable
+                                  Declare a new variable.
+  --error-on-coercion / --no-error-on-coercion
+                                  Error on heterogeneous type coercion.
   --help                          Show this message and exit.
