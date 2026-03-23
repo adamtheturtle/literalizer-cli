@@ -78,14 +78,14 @@ def literalize_input(
     "--language",
     "-l",
     required=True,
-    type=click.Choice(sorted(_LANGUAGE_MAP), case_sensitive=False),
+    type=click.Choice(choices=sorted(_LANGUAGE_MAP), case_sensitive=False),
     help="Target language for output.",
 )
 @click.option(
     "--input-format",
     "-f",
     default="yaml",
-    type=click.Choice(_INPUT_FORMATS, case_sensitive=False),
+    type=click.Choice(choices=_INPUT_FORMATS, case_sensitive=False),
     help="Input data format.",
 )
 @click.option(
@@ -143,7 +143,7 @@ def main(
         new_variable=new_variable,
         error_on_coercion=error_on_coercion,
     )
-    click.echo(result)
+    click.echo(message=result)
 
 
 if __name__ == "__main__":
