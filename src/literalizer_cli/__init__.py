@@ -19,7 +19,7 @@ def main() -> None:
     """Convert data structures to native language literal syntax."""
     json_string = sys.stdin.read()
     language = Python(
-        sequence_format=Python.SequenceFormats.LIST,
+        sequence_format=Python.SequenceFormats.LIST,  # pyright: ignore[reportUnknownMemberType,reportUnknownArgumentType,reportAttributeAccessIssue]
     )
     language.format_string = repr
     result = literalize_json(
