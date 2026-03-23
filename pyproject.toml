@@ -105,7 +105,6 @@ lint.ignore = [
     "PLR0915",
 ]
 lint.per-file-ignores."tests/*.py" = [
-    "PT018",
     # Allow asserts in tests.
     "S101",
 ]
