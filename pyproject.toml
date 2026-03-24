@@ -1,5 +1,5 @@
 [build-system]
-build-backend = "setuptools.build_meta"
+build-backend = "setuptools*"
 requires = [
     "setuptools",
     "setuptools-scm>=8.1.0",
