@@ -8,6 +8,24 @@ CLI for literalizer - convert data structures to native language literal syntax.
 .. contents::
    :local:
 
+Usage example
+-------------
+
+.. code-block:: console
+
+   $ echo '{"name": "Alice", "age": 30}' | literalize --language go
+   map[string]interface{}{
+       "name": "Alice",
+       "age": 30,
+   }
+
+   $ echo '[1, 2, 3]' | literalize --language rust
+   vec![
+       1,
+       2,
+       3,
+   ]
+
 Installation
 ------------
 
@@ -117,18 +135,6 @@ To run ``literalize`` with `pre-commit`_, add hooks like the following to your `
            args: ["--language", "python"]
 
 .. _pre-commit: https://pre-commit.com
-
-Usage example
--------------
-
-.. code-block:: shell
-
-   # Convert JSON on stdin to a Python literal
-   echo '{"name": "Alice", "age": 30}' | literalize --language python
-
-   # Convert to multiple languages
-   echo '[1, 2, 3]' | literalize --language rust
-   echo '{"key": "value"}' | literalize --language go
 
 Full documentation
 ------------------
