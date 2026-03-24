@@ -1,5 +1,5 @@
 [build-system]
-build-backend = "setuptools.build_meta"
+build-backend = "setuptools*"
 requires = [
     "setuptools",
     "setuptools-scm>=8.1.0",
@@ -71,7 +71,7 @@ optional-dependencies.release = [
     "homebrew-pypi-poet==0.10",
     # homebrew-pypi-poet uses pkg_resources, which was removed in
     # setuptools 82.
-    "setuptools>=70,<82",
+    "setuptools>=70,<83",
 ]
 urls.Documentation = "https://adamtheturtle.github.io/literalizer-cli/"
 urls.Source = "https://github.com/adamtheturtle/literalizer-cli"
