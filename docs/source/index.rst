@@ -3,19 +3,25 @@
 
 CLI for literalizer - convert data structures to native language literal syntax.
 
-.. include:: install.rst
-
 Usage example
 -------------
 
-.. code-block:: shell
+.. code-block:: console
 
-   # Convert JSON on stdin to a Python literal
-   echo '{"name": "Alice", "age": 30}' | literalize --language python
+   $ echo '{"name": "Alice", "age": 30}' | literalize --language go
+   map[string]interface{}{
+       "name": "Alice",
+       "age": 30,
+   }
 
-   # Convert to multiple languages
-   echo '[1, 2, 3]' | literalize --language rust
-   echo '{"key": "value"}' | literalize --language go
+   $ echo '[1, 2, 3]' | literalize --language rust
+   vec![
+       1,
+       2,
+       3,
+   ]
+
+.. include:: install.rst
 
 Reference
 ---------
