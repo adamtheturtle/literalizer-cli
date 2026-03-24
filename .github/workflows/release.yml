@@ -126,7 +126,7 @@ jobs:
       # the pushed version.
       # Here, we give PyPI time to propagate the package.
       - name: Install literalizer-cli from PyPI
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_seconds: 5
           max_attempts: 50
@@ -140,7 +140,7 @@ jobs:
       # We still hit the race condition, so we have a retry here too.
       - name: Create a Homebrew recipe
         id: homebrew-create
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_seconds: 5
           max_attempts: 50
@@ -303,7 +303,7 @@ jobs:
       # retry here too. The Docker build fetches from PyPI inside the
       # container, which may hit a different CDN node than the earlier check.
       - name: Build and push Docker image
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -334,7 +334,7 @@ jobs:
       # Wait for PyPI to have the package available before running PyInstaller.
       # Note: PEP 440 normalizes versions by stripping leading zeros (e.g., 2026.01.22 -> 2026.1.22).
       - name: Wait for PyPI propagation
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_seconds: 10
           max_attempts: 50
@@ -380,7 +380,7 @@ jobs:
       # Wait for PyPI to have the package available before running PyInstaller.
       # Note: PEP 440 normalizes versions by stripping leading zeros (e.g., 2026.01.22 -> 2026.1.22).
       - name: Wait for PyPI propagation
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_seconds: 10
           max_attempts: 50
