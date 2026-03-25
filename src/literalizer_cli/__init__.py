@@ -33,6 +33,7 @@ _OPTION_TO_ATTR: dict[str, str] = {
     "comment_format": "comment_formats",
     "variable_type_hints": "variable_type_hints_formats",
     "empty_dict_key": "EmptyDictKey",
+    "line_ending": "LineEndings",
 }
 
 
@@ -101,6 +102,10 @@ _EMPTY_DICT_KEY_HELP = _choices_help(
     label="Empty dict key handling",
     option_name="empty_dict_key",
 )
+_LINE_ENDING_HELP = _choices_help(
+    label="Line ending style",
+    option_name="line_ending",
+)
 
 
 def _resolve_language_option(
@@ -139,7 +144,6 @@ def literalize_input(
     language: Language,
     input_format: str,
     line_prefix: str,
-    indent: str,
     include_delimiters: bool,
     variable_name: str | None,
     new_variable: bool,
@@ -152,7 +156,6 @@ def literalize_input(
                 yaml_string=input_string,
                 language=language,
                 line_prefix=line_prefix,
-                indent=indent,
                 include_delimiters=include_delimiters,
                 variable_name=variable_name,
                 new_variable=new_variable,
@@ -162,7 +165,6 @@ def literalize_input(
             json_string=input_string,
             language=language,
             line_prefix=line_prefix,
-            indent=indent,
             include_delimiters=include_delimiters,
             variable_name=variable_name,
             new_variable=new_variable,
@@ -267,6 +269,11 @@ def literalize_input(
     help=_EMPTY_DICT_KEY_HELP,
 )
 @click.option(
+    "--line-ending",
+    default=None,
+    help=_LINE_ENDING_HELP,
+)
+@click.option(
     "--include-preamble/--no-include-preamble",
     default=False,
     help="Include language preamble (e.g. package declarations, imports).",
@@ -288,6 +295,7 @@ def main(
     comment_format: str | None,
     variable_type_hints: str | None,
     empty_dict_key: str | None,
+    line_ending: str | None,
     include_preamble: bool,  # noqa: FBT001
 ) -> None:
     """Convert data structures to native language literal syntax."""
@@ -304,6 +312,7 @@ def main(
         "comment_format": comment_format,
         "variable_type_hints": variable_type_hints,
         "empty_dict_key": empty_dict_key,
+        "line_ending": line_ending,
     }
     for option_name, value in cli_language_options.items():
         if value is not None:
@@ -313,13 +322,12 @@ def main(
                 value=value,
             )
 
-    lang_instance = lang_cls(**lang_kwargs)
+    lang_instance = lang_cls(indent=indent, **lang_kwargs)
     result = literalize_input(
         input_string=input_string,
         language=lang_instance,
         input_format=input_format,
         line_prefix=line_prefix,
-        indent=indent,
         include_delimiters=include_delimiters,
         variable_name=variable_name,
         new_variable=new_variable,
