@@ -387,7 +387,6 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
             language=case.language,
             input_format=case.input_format,
             line_prefix="",
-            indent="    ",
             include_delimiters=True,
             variable_name=None,
             new_variable=True,
@@ -588,3 +587,27 @@ def test_sequence_format_case_insensitive() -> None:
     """
     )
     assert result.output == expected
+
+
+def test_line_ending() -> None:
+    """--line-ending changes the line ending style."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "javascript",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+            "--line-ending",
+            "none",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    # With line_ending=none, JavaScript should omit the trailing semicolon.
+    assert ";" not in result.output

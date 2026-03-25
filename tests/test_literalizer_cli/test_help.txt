@@ -18,9 +18,11 @@ Options:
                                   Error on heterogeneous type coercion.
   --sequence-format TEXT          Sequence format (language-specific). Choices:
                                   array, cell_array, initializer_list, list,
-                                  sequence, slice, table, tuple, vec, vector.
+                                  seq, sequence, slice, table, tuple, vec,
+                                  vector.
   --set-format TEXT               Set format (language-specific). Choices:
-                                  frozenset, hash_set, map_set, set.
+                                  btree_set, frozenset, hash_set, map_set, set,
+                                  sorted_set, tree_set.
   --date-format TEXT              Date format (language-specific). Choices: cpp,
                                   csharp, dart, elixir, erlang, fsharp, go,
                                   haskell, iso, java, js, julia, kotlin, lua,
@@ -42,6 +44,8 @@ Options:
                                   Choices: inline, none.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
                                   Choices: error, positional.
+  --line-ending TEXT              Line ending style (language-specific).
+                                  Choices: none, semicolon.
   --include-preamble / --no-include-preamble
                                   Include language preamble (e.g. package
                                   declarations, imports).
