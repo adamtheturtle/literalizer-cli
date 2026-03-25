@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
   workflow_call:
     secrets:
-      # WINGET_TOKEN:
-      #   required: true
+      WINGET_TOKEN:
+        required: true
       RELEASE_PAT:
         required: true
       HOMEBREW_TAP_GITHUB_TOKEN:
@@ -409,22 +409,20 @@ jobs:
         run: |
           gh release upload ${{ needs.build.outputs.new_tag }} dist/literalize-windows.exe --clobber
 
-  # Commented out until the initial winget package submission is accepted:
-  # https://github.com/microsoft/winget-pkgs/pull/351286
-  # publish-winget:
-  #   name: Publish to winget
-  #   needs: [build, build-windows]
-  #   runs-on: windows-latest
-  #   environment: winget
-  #
-  #   permissions:
-  #     contents: read
-  #
-  #   steps:
-  #     - name: Publish to winget
-  #       uses: vedantmgoyal9/winget-releaser@v2
-  #       with:
-  #         identifier: adamtheturtle.literalizer-cli
-  #         installers-regex: \.exe$
-  #         release-tag: ${{ needs.build.outputs.new_tag }}
-  #         token: ${{ secrets.WINGET_TOKEN }}
+  publish-winget:
+    name: Publish to winget
+    needs: [build, build-windows]
+    runs-on: windows-latest
+    environment: winget
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Publish to winget
+        uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: adamtheturtle.literalizer-cli
+          installers-regex: \.exe$
+          release-tag: ${{ needs.build.outputs.new_tag }}
+          token: ${{ secrets.WINGET_TOKEN }}
