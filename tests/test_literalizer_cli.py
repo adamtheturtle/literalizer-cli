@@ -149,24 +149,18 @@ def test_custom_indent() -> None:
     assert result.output == expected
 
 
-def test_line_prefix() -> None:
-    """Line prefix is prepended to each output line."""
+def test_pre_indent_level() -> None:
+    """Pre-indent level adds indentation to each output line."""
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
-        args=["-l", "python", "-f", "json", "--line-prefix", ">>> "],
+        args=["-l", "python", "-f", "json", "--pre-indent-level", "1"],
         input='{"a": 1}\n',
         catch_exceptions=False,
         color=True,
     )
     assert result.exit_code == 0
-    expected = textwrap.dedent(
-        text="""\
-        >>> {
-        >>>     "a": 1,
-        >>> }
-    """
-    )
+    expected = '    {\n        "a": 1,\n    }\n'
     assert result.output == expected
 
 
@@ -386,7 +380,7 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
             input_string=case.input_string,
             language=case.language,
             input_format=case.input_format,
-            line_prefix="",
+            pre_indent_level=0,
             include_delimiters=True,
             variable_name=None,
             new_variable=True,

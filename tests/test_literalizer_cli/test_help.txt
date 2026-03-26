@@ -7,7 +7,8 @@ Options:
   -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|elixir|erlang|fortran|fsharp|go|groovy|haskell|hcl|java|javascript|julia|kotlin|lua|matlab|mojo|nim|norg|objectivec|ocaml|occam|perl|php|powershell|python|r|racket|ruby|rust|scala|swift|toml|typescript|visualbasic|yaml|zig]
                                   Target language for output.  [required]
   -f, --input-format [json|yaml]  Input data format.
-  --line-prefix TEXT              Prefix for each output line.
+  --pre-indent-level INTEGER      Number of indent levels to prefix each output
+                                  line with.
   --indent TEXT                   Indentation string.
   --include-delimiters / --no-include-delimiters
                                   Include opening/closing delimiters.
