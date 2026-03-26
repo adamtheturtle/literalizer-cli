@@ -42,7 +42,7 @@ Options:
                                   exclamation, hash, paren_star, percent,
                                   semicolon, star_angle.
   --variable-type-hints TEXT      Variable type hints (language-specific).
-                                  Choices: inline, none.
+                                  Choices: always, auto.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
                                   Choices: error, positional.
   --line-ending TEXT              Line ending style (language-specific).

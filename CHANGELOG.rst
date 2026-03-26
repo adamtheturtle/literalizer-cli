@@ -4,7 +4,7 @@ Changelog
 Next
 ----
 
-- Bump ``literalizer`` to 2026.3.26.
+- Bump ``literalizer`` to 2026.03.26.1.
 - Replace ``--line-prefix`` CLI option with ``--pre-indent-level``.
 
 2026.03.25
