@@ -143,7 +143,7 @@ def literalize_input(
     input_string: str,
     language: Language,
     input_format: str,
-    line_prefix: str,
+    pre_indent_level: int,
     include_delimiters: bool,
     variable_name: str | None,
     new_variable: bool,
@@ -155,7 +155,7 @@ def literalize_input(
             return literalize_yaml(
                 yaml_string=input_string,
                 language=language,
-                line_prefix=line_prefix,
+                pre_indent_level=pre_indent_level,
                 include_delimiters=include_delimiters,
                 variable_name=variable_name,
                 new_variable=new_variable,
@@ -164,7 +164,7 @@ def literalize_input(
         return literalize_json(
             json_string=input_string,
             language=language,
-            line_prefix=line_prefix,
+            pre_indent_level=pre_indent_level,
             include_delimiters=include_delimiters,
             variable_name=variable_name,
             new_variable=new_variable,
@@ -199,9 +199,10 @@ def literalize_input(
     help="Input data format.",
 )
 @click.option(
-    "--line-prefix",
-    default="",
-    help="Prefix for each output line.",
+    "--pre-indent-level",
+    default=0,
+    type=int,
+    help="Number of indent levels to prefix each output line with.",
 )
 @click.option(
     "--indent",
@@ -281,7 +282,7 @@ def literalize_input(
 def main(
     language: str,
     input_format: str,
-    line_prefix: str,
+    pre_indent_level: int,
     indent: str,
     include_delimiters: bool,  # noqa: FBT001
     variable_name: str | None,
@@ -327,7 +328,7 @@ def main(
         input_string=input_string,
         language=lang_instance,
         input_format=input_format,
-        line_prefix=line_prefix,
+        pre_indent_level=pre_indent_level,
         include_delimiters=include_delimiters,
         variable_name=variable_name,
         new_variable=new_variable,
