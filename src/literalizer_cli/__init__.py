@@ -2,6 +2,7 @@
 
 import enum
 import sys
+from collections.abc import Callable
 from importlib.metadata import PackageNotFoundError, version
 
 import click
@@ -23,17 +24,17 @@ _INPUT_FORMATS = ("json", "yaml")
 
 _INDENT = "    "
 
-# Map from CLI option name to the class attribute holding the enum.
-_OPTION_TO_ATTR: dict[str, str] = {
-    "sequence_format": "sequence_formats",
-    "set_format": "set_formats",
-    "date_format": "date_formats",
-    "datetime_format": "datetime_formats",
-    "bytes_format": "bytes_formats",
-    "comment_format": "comment_formats",
-    "variable_type_hints": "variable_type_hints_formats",
-    "empty_dict_key": "EmptyDictKey",
-    "line_ending": "LineEndings",
+# Map from CLI option name to a getter for the enum class.
+_OPTION_TO_ENUM: dict[str, Callable[[LanguageCls], type[enum.Enum]]] = {
+    "sequence_format": lambda cls: cls.SequenceFormats,
+    "set_format": lambda cls: cls.SetFormats,
+    "date_format": lambda cls: cls.DateFormats,
+    "datetime_format": lambda cls: cls.DatetimeFormats,
+    "bytes_format": lambda cls: cls.BytesFormats,
+    "comment_format": lambda cls: cls.CommentFormats,
+    "variable_type_hints": lambda cls: cls.VariableTypeHints,
+    "empty_dict_key": lambda cls: cls.EmptyDictKey,
+    "line_ending": lambda cls: cls.LineEndings,
 }
 
 
@@ -43,8 +44,7 @@ def _get_enum_for_option(
     option_name: str,
 ) -> type[enum.Enum]:
     """Get the enum class for a language option."""
-    attr = _OPTION_TO_ATTR[option_name]
-    return getattr(lang_cls, attr)  # type: ignore[no-any-return]
+    return _OPTION_TO_ENUM[option_name](lang_cls)
 
 
 def _all_choices_for_option(option_name: str) -> list[str]:
