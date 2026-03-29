@@ -311,7 +311,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
         ExceptionCase(
             input_format="json",
             input_string='{"": 1}\n',
-            language=R(empty_dict_key=R.EmptyDictKey.ERROR),
+            language=R(empty_dict_key=R.EmptyDictKey.ERROR),  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType,reportUnknownArgumentType]
             error_on_coercion=False,
             expected=(
                 "R does not support empty-string dict keys. "
