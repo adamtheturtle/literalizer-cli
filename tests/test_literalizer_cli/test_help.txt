@@ -44,9 +44,19 @@ Options:
   --variable-type-hints TEXT      Variable type hints (language-specific).
                                   Choices: always, auto.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
-                                  Choices: error, positional.
+                                  Choices: allow, error, positional.
   --line-ending TEXT              Line ending style (language-specific).
                                   Choices: none, semicolon.
+  --default-dict-key-type TEXT    Default type for dict keys (language-specific,
+                                  free-form string).
+  --default-dict-value-type TEXT  Default type for dict values (language-
+                                  specific, free-form string).
+  --default-sequence-element-type TEXT
+                                  Default type for sequence elements (language-
+                                  specific, free-form string).
+  --default-set-element-type TEXT
+                                  Default type for set elements (language-
+                                  specific, free-form string).
   --include-preamble / --no-include-preamble
                                   Include language preamble (e.g. package
                                   declarations, imports).

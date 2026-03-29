@@ -41,11 +41,9 @@ def _get_enum_for_option(
     *,
     lang_cls: LanguageCls,
     option_name: str,
-) -> type[enum.Enum] | None:
-    """Get the enum class for a language option, or None."""
+) -> type[enum.Enum]:
+    """Get the enum class for a language option."""
     attr = _OPTION_TO_ATTR[option_name]
-    if not hasattr(lang_cls, attr):
-        return None
     return getattr(lang_cls, attr)  # type: ignore[no-any-return]
 
 
@@ -57,8 +55,7 @@ def _all_choices_for_option(option_name: str) -> list[str]:
             lang_cls=lang_cls,
             option_name=option_name,
         )
-        if enum_cls is not None:
-            members.update(m.lower() for m in enum_cls.__members__)
+        members.update(m.lower() for m in enum_cls.__members__)
     return sorted(members)
 
 
@@ -107,6 +104,15 @@ _LINE_ENDING_HELP = _choices_help(
     option_name="line_ending",
 )
 
+# Language options that take a free-form string rather than an enum.
+# Maps CLI option name to the ``supports_*`` attribute on the language class.
+_STRING_OPTIONS: dict[str, str] = {
+    "default_dict_key_type": "supports_default_dict_key_type",
+    "default_dict_value_type": "supports_default_dict_value_type",
+    "default_sequence_element_type": "supports_default_sequence_element_type",
+    "default_set_element_type": "supports_default_set_element_type",
+}
+
 
 def _resolve_language_option(
     *,
@@ -119,12 +125,6 @@ def _resolve_language_option(
         lang_cls=lang_cls,
         option_name=option_name,
     )
-    if enum_cls is None:
-        lang_name = lang_cls.__name__.lower()
-        raise click.UsageError(
-            message=f"--{option_name.replace('_', '-')} is not supported "
-            f"for language '{lang_name}'.",
-        )
     upper_value = value.upper()
     if upper_value not in enum_cls.__members__:
         choices = ", ".join(
@@ -275,6 +275,33 @@ def literalize_input(
     help=_LINE_ENDING_HELP,
 )
 @click.option(
+    "--default-dict-key-type",
+    default=None,
+    help="Default type for dict keys (language-specific, free-form string).",
+)
+@click.option(
+    "--default-dict-value-type",
+    default=None,
+    help=(
+        "Default type for dict values (language-specific, free-form string)."
+    ),
+)
+@click.option(
+    "--default-sequence-element-type",
+    default=None,
+    help=(
+        "Default type for sequence elements"
+        " (language-specific, free-form string)."
+    ),
+)
+@click.option(
+    "--default-set-element-type",
+    default=None,
+    help=(
+        "Default type for set elements (language-specific, free-form string)."
+    ),
+)
+@click.option(
     "--include-preamble/--no-include-preamble",
     default=False,
     help="Include language preamble (e.g. package declarations, imports).",
@@ -297,6 +324,10 @@ def main(
     variable_type_hints: str | None,
     empty_dict_key: str | None,
     line_ending: str | None,
+    default_dict_key_type: str | None,
+    default_dict_value_type: str | None,
+    default_sequence_element_type: str | None,
+    default_set_element_type: str | None,
     include_preamble: bool,  # noqa: FBT001
 ) -> None:
     """Convert data structures to native language literal syntax."""
@@ -322,6 +353,25 @@ def main(
                 option_name=option_name,
                 value=value,
             )
+
+    cli_string_options = {
+        "default_dict_key_type": default_dict_key_type,
+        "default_dict_value_type": default_dict_value_type,
+        "default_sequence_element_type": default_sequence_element_type,
+        "default_set_element_type": default_set_element_type,
+    }
+    for option_name, value in cli_string_options.items():
+        if value is not None:
+            supports_attr = _STRING_OPTIONS[option_name]
+            if not getattr(lang_cls, supports_attr, False):
+                lang_name = lang_cls.__name__.lower()
+                raise click.UsageError(
+                    message=(
+                        f"--{option_name.replace('_', '-')} is not "
+                        f"supported for language '{lang_name}'."
+                    ),
+                )
+            lang_kwargs[option_name] = value
 
     lang_instance = lang_cls(indent=indent, **lang_kwargs)
     result = literalize_input(
