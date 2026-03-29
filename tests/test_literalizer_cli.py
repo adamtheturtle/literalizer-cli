@@ -14,7 +14,7 @@ import literalizer_cli
 from literalizer_cli import main
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ExceptionCase:
     """A real literalizer failure case and its expected CLI message."""
 
