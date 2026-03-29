@@ -105,12 +105,21 @@ _LINE_ENDING_HELP = _choices_help(
 )
 
 # Language options that take a free-form string rather than an enum.
-# Maps CLI option name to the ``supports_*`` attribute on the language class.
-_STRING_OPTIONS: dict[str, str] = {
-    "default_dict_key_type": "supports_default_dict_key_type",
-    "default_dict_value_type": "supports_default_dict_value_type",
-    "default_sequence_element_type": "supports_default_sequence_element_type",
-    "default_set_element_type": "supports_default_set_element_type",
+# Maps CLI option name to a getter for the ``supports_*`` flag.
+_STRING_OPTIONS: dict[
+    str,
+    Callable[[LanguageCls], bool],
+] = {
+    "default_dict_key_type": (lambda cls: cls.supports_default_dict_key_type),
+    "default_dict_value_type": (
+        lambda cls: cls.supports_default_dict_value_type
+    ),
+    "default_sequence_element_type": (
+        lambda cls: cls.supports_default_sequence_element_type
+    ),
+    "default_set_element_type": (
+        lambda cls: cls.supports_default_set_element_type
+    ),
 }
 
 
@@ -362,8 +371,7 @@ def main(
     }
     for option_name, value in cli_string_options.items():
         if value is not None:
-            supports_attr = _STRING_OPTIONS[option_name]
-            if not getattr(lang_cls, supports_attr, False):
+            if not _STRING_OPTIONS[option_name](lang_cls):
                 lang_name = lang_cls.__name__.lower()
                 raise click.UsageError(
                     message=(
