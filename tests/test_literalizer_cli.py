@@ -479,8 +479,8 @@ def test_language_option_unsupported_for_language() -> None:
             "python",
             "-f",
             "json",
-            "--empty-dict-key",
-            "positional",
+            "--default-dict-key-type",
+            "str",
         ],
         input='{"a": 1}\n',
         catch_exceptions=False,
@@ -491,7 +491,8 @@ def test_language_option_unsupported_for_language() -> None:
         "Usage: literalize [OPTIONS]\n"
         "Try 'literalize --help' for help.\n"
         "\n"
-        "Error: --empty-dict-key is not supported for language 'python'.\n"
+        "Error: --default-dict-key-type is not supported "
+        "for language 'python'.\n"
     )
     assert result.output == expected
 
@@ -605,3 +606,115 @@ def test_line_ending() -> None:
     assert result.exit_code == 0
     # With line_ending=none, JavaScript should omit the trailing semicolon.
     assert ";" not in result.output
+
+
+def test_default_dict_key_type() -> None:
+    """--default-dict-key-type overrides the default dict key type."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "go",
+            "-f",
+            "json",
+            "--default-dict-key-type",
+            "int",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "map[int]" in result.output
+
+
+def test_default_dict_value_type() -> None:
+    """--default-dict-value-type overrides the default dict value type."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "go",
+            "-f",
+            "json",
+            "--default-dict-value-type",
+            "MyType",
+        ],
+        input='{"a": 1, "b": "x"}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "map[string]MyType" in result.output
+
+
+def test_default_sequence_element_type() -> None:
+    """--default-sequence-element-type overrides sequence element type."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "go",
+            "-f",
+            "json",
+            "--default-sequence-element-type",
+            "MyType",
+        ],
+        input='[1, "a"]\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "[]MyType" in result.output
+
+
+def test_default_set_element_type() -> None:
+    """--default-set-element-type overrides the default set element type."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "csharp",
+            "-f",
+            "yaml",
+            "--default-set-element-type",
+            "MyType",
+        ],
+        input="!!set\n  1:\n  a:\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "HashSet<MyType>" in result.output
+
+
+def test_default_type_unsupported_for_language() -> None:
+    """Error when a default type option is not supported for the language."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--default-sequence-element-type",
+            "int",
+        ],
+        input="[1]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    expected = (
+        "Usage: literalize [OPTIONS]\n"
+        "Try 'literalize --help' for help.\n"
+        "\n"
+        "Error: --default-sequence-element-type is not supported "
+        "for language 'python'.\n"
+    )
+    assert result.output == expected
