@@ -41,11 +41,9 @@ def _get_enum_for_option(
     *,
     lang_cls: LanguageCls,
     option_name: str,
-) -> type[enum.Enum] | None:
-    """Get the enum class for a language option, or None."""
+) -> type[enum.Enum]:
+    """Get the enum class for a language option."""
     attr = _OPTION_TO_ATTR[option_name]
-    if not hasattr(lang_cls, attr):
-        return None
     return getattr(lang_cls, attr)  # type: ignore[no-any-return]
 
 
@@ -57,8 +55,7 @@ def _all_choices_for_option(option_name: str) -> list[str]:
             lang_cls=lang_cls,
             option_name=option_name,
         )
-        if enum_cls is not None:
-            members.update(m.lower() for m in enum_cls.__members__)
+        members.update(m.lower() for m in enum_cls.__members__)
     return sorted(members)
 
 
@@ -128,12 +125,6 @@ def _resolve_language_option(
         lang_cls=lang_cls,
         option_name=option_name,
     )
-    if enum_cls is None:
-        lang_name = lang_cls.__name__.lower()
-        raise click.UsageError(
-            message=f"--{option_name.replace('_', '-')} is not supported "
-            f"for language '{lang_name}'.",
-        )
     upper_value = value.upper()
     if upper_value not in enum_cls.__members__:
         choices = ", ".join(
