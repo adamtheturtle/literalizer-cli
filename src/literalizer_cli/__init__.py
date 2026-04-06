@@ -7,7 +7,7 @@ from importlib.metadata import PackageNotFoundError, version
 
 import click
 import literalizer.exceptions
-from literalizer import LiteralizeResult, literalize_json, literalize_yaml
+from literalizer import InputFormat, LiteralizeResult, literalize
 from literalizer._language import Language, LanguageCls
 from literalizer.languages import ALL_LANGUAGES
 
@@ -20,7 +20,14 @@ _LANGUAGE_MAP = {
     lang_cls.__name__.lower(): lang_cls for lang_cls in ALL_LANGUAGES
 }
 
-_INPUT_FORMATS = ("json", "yaml")
+_INPUT_FORMATS = ("json", "json5", "yaml", "toml")
+
+_INPUT_FORMAT_MAP: dict[str, InputFormat] = {
+    "json": InputFormat.JSON,
+    "json5": InputFormat.JSON5,
+    "yaml": InputFormat.YAML,
+    "toml": InputFormat.TOML,
+}
 
 _INDENT = "    "
 
@@ -33,6 +40,15 @@ _OPTION_TO_ENUM: dict[str, Callable[[LanguageCls], type[enum.Enum]]] = {
     "bytes_format": lambda cls: cls.BytesFormats,
     "comment_format": lambda cls: cls.CommentFormats,
     "variable_type_hints": lambda cls: cls.VariableTypeHints,
+    "declaration_style": lambda cls: cls.DeclarationStyles,
+    "dict_entry_style": lambda cls: cls.DictEntryStyles,
+    "dict_format": lambda cls: cls.DictFormats,
+    "float_format": lambda cls: cls.FloatFormats,
+    "integer_format": lambda cls: cls.IntegerFormats,
+    "numeric_literal_suffix": lambda cls: cls.NumericLiteralSuffixes,
+    "numeric_separator": lambda cls: cls.NumericSeparators,
+    "string_format": lambda cls: cls.StringFormats,
+    "trailing_comma": lambda cls: cls.TrailingCommas,
     "empty_dict_key": lambda cls: cls.EmptyDictKey,
     "line_ending": lambda cls: cls.LineEndings,
 }
@@ -95,6 +111,42 @@ _VARIABLE_TYPE_HINTS_HELP = _choices_help(
     label="Variable type hints",
     option_name="variable_type_hints",
 )
+_DECLARATION_STYLE_HELP = _choices_help(
+    label="Declaration style",
+    option_name="declaration_style",
+)
+_DICT_ENTRY_STYLE_HELP = _choices_help(
+    label="Dict entry style",
+    option_name="dict_entry_style",
+)
+_DICT_FORMAT_HELP = _choices_help(
+    label="Dict format",
+    option_name="dict_format",
+)
+_FLOAT_FORMAT_HELP = _choices_help(
+    label="Float format",
+    option_name="float_format",
+)
+_INTEGER_FORMAT_HELP = _choices_help(
+    label="Integer format",
+    option_name="integer_format",
+)
+_NUMERIC_LITERAL_SUFFIX_HELP = _choices_help(
+    label="Numeric literal suffix",
+    option_name="numeric_literal_suffix",
+)
+_NUMERIC_SEPARATOR_HELP = _choices_help(
+    label="Numeric separator",
+    option_name="numeric_separator",
+)
+_STRING_FORMAT_HELP = _choices_help(
+    label="String format",
+    option_name="string_format",
+)
+_TRAILING_COMMA_HELP = _choices_help(
+    label="Trailing comma",
+    option_name="trailing_comma",
+)
 _EMPTY_DICT_KEY_HELP = _choices_help(
     label="Empty dict key handling",
     option_name="empty_dict_key",
@@ -119,6 +171,9 @@ _STRING_OPTIONS: dict[
     ),
     "default_set_element_type": (
         lambda cls: cls.supports_default_set_element_type
+    ),
+    "default_ordered_map_value_type": (
+        lambda cls: cls.supports_default_ordered_map_value_type
     ),
 }
 
@@ -151,7 +206,7 @@ def literalize_input(
     *,
     input_string: str,
     language: Language,
-    input_format: str,
+    input_format: InputFormat,
     pre_indent_level: int,
     include_delimiters: bool,
     variable_name: str | None,
@@ -160,18 +215,9 @@ def literalize_input(
 ) -> LiteralizeResult:
     """Literalize input and surface literalizer errors as CLI errors."""
     try:
-        if input_format == "yaml":
-            return literalize_yaml(
-                yaml_string=input_string,
-                language=language,
-                pre_indent_level=pre_indent_level,
-                include_delimiters=include_delimiters,
-                variable_name=variable_name,
-                new_variable=new_variable,
-                error_on_coercion=error_on_coercion,
-            )
-        return literalize_json(
-            json_string=input_string,
+        return literalize(
+            source=input_string,
+            input_format=input_format,
             language=language,
             pre_indent_level=pre_indent_level,
             include_delimiters=include_delimiters,
@@ -181,9 +227,13 @@ def literalize_input(
         )
     except literalizer.exceptions.JSONParseError as exc:
         raise click.ClickException(message=str(object=exc)) from None
+    except literalizer.exceptions.JSON5ParseError as exc:
+        raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.YAMLParseError as exc:
         raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.EmptyDictKeyError as exc:
+    except literalizer.exceptions.TOMLParseError as exc:
+        raise click.ClickException(message=str(object=exc)) from None
+    except literalizer.exceptions.InvalidDictKeyError as exc:
         raise click.ClickException(message=str(object=exc)) from None
     except literalizer.exceptions.HeterogeneousCoercionError as exc:
         raise click.ClickException(message=str(object=exc)) from None
@@ -274,6 +324,51 @@ def literalize_input(
     help=_VARIABLE_TYPE_HINTS_HELP,
 )
 @click.option(
+    "--declaration-style",
+    default=None,
+    help=_DECLARATION_STYLE_HELP,
+)
+@click.option(
+    "--dict-entry-style",
+    default=None,
+    help=_DICT_ENTRY_STYLE_HELP,
+)
+@click.option(
+    "--dict-format",
+    default=None,
+    help=_DICT_FORMAT_HELP,
+)
+@click.option(
+    "--float-format",
+    default=None,
+    help=_FLOAT_FORMAT_HELP,
+)
+@click.option(
+    "--integer-format",
+    default=None,
+    help=_INTEGER_FORMAT_HELP,
+)
+@click.option(
+    "--numeric-literal-suffix",
+    default=None,
+    help=_NUMERIC_LITERAL_SUFFIX_HELP,
+)
+@click.option(
+    "--numeric-separator",
+    default=None,
+    help=_NUMERIC_SEPARATOR_HELP,
+)
+@click.option(
+    "--string-format",
+    default=None,
+    help=_STRING_FORMAT_HELP,
+)
+@click.option(
+    "--trailing-comma",
+    default=None,
+    help=_TRAILING_COMMA_HELP,
+)
+@click.option(
     "--empty-dict-key",
     default=None,
     help=_EMPTY_DICT_KEY_HELP,
@@ -311,6 +406,14 @@ def literalize_input(
     ),
 )
 @click.option(
+    "--default-ordered-map-value-type",
+    default=None,
+    help=(
+        "Default type for ordered map values"
+        " (language-specific, free-form string)."
+    ),
+)
+@click.option(
     "--include-preamble/--no-include-preamble",
     default=False,
     help="Include language preamble (e.g. package declarations, imports).",
@@ -331,12 +434,22 @@ def main(
     bytes_format: str | None,
     comment_format: str | None,
     variable_type_hints: str | None,
+    declaration_style: str | None,
+    dict_entry_style: str | None,
+    dict_format: str | None,
+    float_format: str | None,
+    integer_format: str | None,
+    numeric_literal_suffix: str | None,
+    numeric_separator: str | None,
+    string_format: str | None,
+    trailing_comma: str | None,
     empty_dict_key: str | None,
     line_ending: str | None,
     default_dict_key_type: str | None,
     default_dict_value_type: str | None,
     default_sequence_element_type: str | None,
     default_set_element_type: str | None,
+    default_ordered_map_value_type: str | None,
     include_preamble: bool,  # noqa: FBT001
 ) -> None:
     """Convert data structures to native language literal syntax."""
@@ -352,6 +465,15 @@ def main(
         "bytes_format": bytes_format,
         "comment_format": comment_format,
         "variable_type_hints": variable_type_hints,
+        "declaration_style": declaration_style,
+        "dict_entry_style": dict_entry_style,
+        "dict_format": dict_format,
+        "float_format": float_format,
+        "integer_format": integer_format,
+        "numeric_literal_suffix": numeric_literal_suffix,
+        "numeric_separator": numeric_separator,
+        "string_format": string_format,
+        "trailing_comma": trailing_comma,
         "empty_dict_key": empty_dict_key,
         "line_ending": line_ending,
     }
@@ -368,6 +490,7 @@ def main(
         "default_dict_value_type": default_dict_value_type,
         "default_sequence_element_type": default_sequence_element_type,
         "default_set_element_type": default_set_element_type,
+        "default_ordered_map_value_type": default_ordered_map_value_type,
     }
     for option_name, value in cli_string_options.items():
         if value is not None:
@@ -385,7 +508,7 @@ def main(
     result = literalize_input(
         input_string=input_string,
         language=lang_instance,
-        input_format=input_format,
+        input_format=_INPUT_FORMAT_MAP[input_format],
         pre_indent_level=pre_indent_level,
         include_delimiters=include_delimiters,
         variable_name=variable_name,
