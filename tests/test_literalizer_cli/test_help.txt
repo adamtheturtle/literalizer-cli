@@ -4,9 +4,10 @@ Usage: literalize [OPTIONS]
 
 Options:
   --version                       Show the version and exit.
-  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|elixir|erlang|fortran|fsharp|go|groovy|haskell|hcl|java|javascript|julia|kotlin|lua|matlab|mojo|nim|norg|objectivec|ocaml|occam|perl|php|powershell|python|r|racket|ruby|rust|scala|swift|toml|typescript|visualbasic|yaml|zig]
+  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|fortran|fsharp|gleam|go|groovy|haskell|hcl|java|javascript|json5|jsonnet|julia|kotlin|lua|matlab|mojo|nim|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|ruby|rust|scala|scheme|swift|systemverilog|toml|typescript|visualbasic|yaml|zig]
                                   Target language for output.  [required]
-  -f, --input-format [json|yaml]  Input data format.
+  -f, --input-format [json|json5|yaml|toml]
+                                  Input data format.
   --pre-indent-level INTEGER      Number of indent levels to prefix each output
                                   line with.
   --indent TEXT                   Indentation string.
@@ -18,9 +19,9 @@ Options:
   --error-on-coercion / --no-error-on-coercion
                                   Error on heterogeneous type coercion.
   --sequence-format TEXT          Sequence format (language-specific). Choices:
-                                  array, cell_array, initializer_list, list,
-                                  seq, sequence, slice, table, tuple, vec,
-                                  vector.
+                                  array, cell_array, dynamic_array,
+                                  initializer_list, list, seq, sequence, slice,
+                                  table, tuple, vec, vector.
   --set-format TEXT               Set format (language-specific). Choices:
                                   btree_set, frozenset, hash_set, map_set, set,
                                   sorted_set, tree_set.
@@ -28,21 +29,46 @@ Options:
                                   csharp, dart, elixir, erlang, fsharp, go,
                                   haskell, iso, java, js, julia, kotlin, lua,
                                   matlab, nim, objc, ocaml, perl, php, python,
-                                  r, ruby, rust, scala, swift, toml, yaml, zig.
+                                  r, raku, ruby, rust, scala, swift, toml, yaml,
+                                  zig.
   --datetime-format TEXT          Datetime format (language-specific). Choices:
                                   cpp, csharp, dart, elixir, epoch, erlang,
                                   fsharp, go, haskell, instant, iso, js, julia,
                                   kotlin, lua, matlab, nim, objc, ocaml, perl,
-                                  php, python, r, ruby, rust, scala, swift,
-                                  toml, yaml, zig, zoned.
+                                  php, python, r, raku, ruby, rust, scala,
+                                  swift, toml, yaml, zig, zoned.
   --bytes-format TEXT             Bytes format (language-specific). Choices:
-                                  binary, hex, python.
+                                  base64, binary, hex, python.
   --comment-format TEXT           Comment format (language-specific). Choices:
                                   apostrophe, block, double_dash, double_slash,
-                                  exclamation, hash, paren_star, percent,
+                                  exclamation, hash, line, paren_star, percent,
                                   semicolon, star_angle.
   --variable-type-hints TEXT      Variable type hints (language-specific).
                                   Choices: always, auto.
+  --declaration-style TEXT        Declaration style (language-specific).
+                                  Choices: assign, auto, block, const, declare,
+                                  def, define, defparameter, dim, final, let,
+                                  let_mut, let_mutable, local, my, short, typed,
+                                  val, var.
+  --dict-entry-style TEXT         Dict entry style (language-specific). Choices:
+                                  default, rocket, symbol.
+  --dict-format TEXT              Dict format (language-specific). Choices:
+                                  btree_map, containers_map, default, dict,
+                                  dictionary, hash_map, list_map, map,
+                                  map_of_entries, object, ordered,
+                                  sorted_dictionary, struct, unordered_map.
+  --float-format TEXT             Float format (language-specific). Choices:
+                                  fixed, repr, scientific.
+  --integer-format TEXT           Integer format (language-specific). Choices:
+                                  binary, decimal, hex, octal, octal_c_style.
+  --numeric-literal-suffix TEXT   Numeric literal suffix (language-specific).
+                                  Choices: auto, none.
+  --numeric-separator TEXT        Numeric separator (language-specific).
+                                  Choices: none, underscore.
+  --string-format TEXT            String format (language-specific). Choices:
+                                  double, raw, single, verbatim.
+  --trailing-comma TEXT           Trailing comma (language-specific). Choices:
+                                  no, yes.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
                                   Choices: allow, error, positional.
   --line-ending TEXT              Line ending style (language-specific).
@@ -56,6 +82,9 @@ Options:
                                   specific, free-form string).
   --default-set-element-type TEXT
                                   Default type for set elements (language-
+                                  specific, free-form string).
+  --default-ordered-map-value-type TEXT
+                                  Default type for ordered map values (language-
                                   specific, free-form string).
   --include-preamble / --no-include-preamble
                                   Include language preamble (e.g. package

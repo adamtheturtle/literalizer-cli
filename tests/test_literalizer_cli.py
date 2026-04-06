@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import pytest
 from click import ClickException
 from click.testing import CliRunner
+from literalizer import InputFormat
 from literalizer._language import Language
 from literalizer.languages import Java, Python, R, Rust
 from pytest_regressions.file_regression import FileRegressionFixture
@@ -18,7 +19,7 @@ from literalizer_cli import main
 class ExceptionCase:
     """A real literalizer failure case and its expected CLI message."""
 
-    input_format: str
+    input_format: InputFormat
     input_string: str
     language: Language
     error_on_coercion: bool
@@ -309,7 +310,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
     argnames="case",
     argvalues=[
         ExceptionCase(
-            input_format="json",
+            input_format=InputFormat.JSON,
             input_string='{"": 1}\n',
             language=R(empty_dict_key=R.empty_dict_keys.ERROR),
             error_on_coercion=False,
@@ -320,7 +321,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             ),
         ),
         ExceptionCase(
-            input_format="json",
+            input_format=InputFormat.JSON,
             input_string='[1, "a"]\n',
             language=Rust(sequence_format=Rust.sequence_formats.VEC),
             error_on_coercion=True,
@@ -330,7 +331,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             ),
         ),
         ExceptionCase(
-            input_format="json",
+            input_format=InputFormat.JSON,
             input_string="[null]\n",
             language=Java(sequence_format=Java.sequence_formats.LIST),
             error_on_coercion=False,
@@ -340,14 +341,14 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             ),
         ),
         ExceptionCase(
-            input_format="json",
+            input_format=InputFormat.JSON,
             input_string='{"a": }\n',
             language=Python(),
             error_on_coercion=False,
             expected="Invalid JSON: Expecting value at line 1 column 7",
         ),
         ExceptionCase(
-            input_format="yaml",
+            input_format=InputFormat.YAML,
             input_string="a: [1\n",
             language=Python(),
             error_on_coercion=False,
@@ -476,7 +477,7 @@ def test_language_option_unsupported_for_language() -> None:
         cli=main,
         args=[
             "-l",
-            "python",
+            "ada",
             "-f",
             "json",
             "--default-dict-key-type",
@@ -492,7 +493,7 @@ def test_language_option_unsupported_for_language() -> None:
         "Try 'literalize --help' for help.\n"
         "\n"
         "Error: --default-dict-key-type is not supported "
-        "for language 'python'.\n"
+        "for language 'ada'.\n"
     )
     assert result.output == expected
 
@@ -699,7 +700,7 @@ def test_default_type_unsupported_for_language() -> None:
         cli=main,
         args=[
             "-l",
-            "python",
+            "ada",
             "-f",
             "json",
             "--default-sequence-element-type",
@@ -715,6 +716,128 @@ def test_default_type_unsupported_for_language() -> None:
         "Try 'literalize --help' for help.\n"
         "\n"
         "Error: --default-sequence-element-type is not supported "
-        "for language 'python'.\n"
+        "for language 'ada'.\n"
     )
     assert result.output == expected
+
+
+def test_literalize_json5_to_python() -> None:
+    """JSON5 input is converted to Python literal syntax."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "-f", "json5"],
+        input="{a: 1, b: [2, 3]}\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    expected = textwrap.dedent(
+        text="""\
+        {
+            "a": 1,
+            "b": (2, 3),
+        }
+    """
+    )
+    assert result.output == expected
+
+
+def test_literalize_toml_to_python() -> None:
+    """TOML input is converted to Python literal syntax."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "-f", "toml"],
+        input="a = 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    expected = textwrap.dedent(
+        text="""\
+        {
+            "a": 1,
+        }
+    """
+    )
+    assert result.output == expected
+
+
+def test_invalid_json5_is_shown_cleanly() -> None:
+    """JSON5 parse failures are shown as CLI errors."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--language", "python", "--input-format", "json5"],
+        input="{a: }\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert "Error:" in result.output
+
+
+def test_invalid_toml_is_shown_cleanly() -> None:
+    """TOML parse failures are shown as CLI errors."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--language", "python", "--input-format", "toml"],
+        input="= bad\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert "Error:" in result.output
+
+
+def test_trailing_comma_option() -> None:
+    """--trailing-comma controls trailing comma behavior."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--trailing-comma",
+            "no",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    expected = textwrap.dedent(
+        text="""\
+        {
+            "a": 1
+        }
+    """
+    )
+    assert result.output == expected
+
+
+def test_declaration_style_option() -> None:
+    """--declaration-style changes the variable declaration style."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "javascript",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+            "--declaration-style",
+            "const",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "const data" in result.output
