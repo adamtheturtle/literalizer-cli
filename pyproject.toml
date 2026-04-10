@@ -62,7 +62,7 @@ optional-dependencies.dev = [
     "sphinx-substitution-extensions==2026.1.12",
     "sphinxcontrib-spelling==8.0.2",
     "ty==0.0.29",
-    "uv==0.11.5",
+    "uv==0.11.6",
     "yamlfix==1.19.1",
     "zizmor==1.23.1",
 ]
