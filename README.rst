@@ -26,6 +26,10 @@ Usage example
        3,
    ]
 
+   $ echo '[["alice", 30], ["bob", 25]]' | literalize --language python --mode call --call-function create_user --call-params name,age
+   create_user(name="alice", age=30)
+   create_user(name="bob", age=25)
+
 Installation
 ------------
 

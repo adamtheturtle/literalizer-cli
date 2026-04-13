@@ -4,6 +4,10 @@ Changelog
 Next
 ----
 
+- Bump ``literalizer`` to 2026.4.13.
+- Add ``--mode call`` for converting data into function call expressions,
+  with ``--call-function``, ``--call-params``, and ``--per-element`` options.
+
 2026.04.06
 ----------
 

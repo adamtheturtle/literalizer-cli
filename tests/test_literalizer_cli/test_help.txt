@@ -4,7 +4,7 @@ Usage: literalize [OPTIONS]
 
 Options:
   --version                       Show the version and exit.
-  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|fortran|fsharp|gleam|go|groovy|haskell|hcl|java|javascript|json5|jsonnet|julia|kotlin|lua|matlab|mojo|nim|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|ruby|rust|scala|scheme|swift|systemverilog|toml|typescript|visualbasic|yaml|zig]
+  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|forth|fortran|fsharp|gleam|go|groovy|haskell|hcl|java|javascript|json5|jsonnet|julia|kotlin|lua|matlab|mojo|nim|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|ruby|rust|scala|scheme|sml|swift|systemverilog|tcl|toml|typescript|v|visualbasic|wren|yaml|zig]
                                   Target language for output.  [required]
   -f, --input-format [json|json5|yaml|toml]
                                   Input data format.
@@ -23,33 +23,34 @@ Options:
                                   initializer_list, list, seq, sequence, slice,
                                   table, tuple, vec, vector.
   --set-format TEXT               Set format (language-specific). Choices:
-                                  btree_set, frozenset, hash_set, map_set, set,
-                                  sorted_set, tree_set.
+                                  array, btree_set, dict, frozenset, hash_set,
+                                  map_set, set, sorted_set, tree_set.
   --date-format TEXT              Date format (language-specific). Choices: cpp,
                                   csharp, dart, elixir, erlang, fsharp, go,
                                   haskell, iso, java, js, julia, kotlin, lua,
                                   matlab, nim, objc, ocaml, perl, php, python,
-                                  r, raku, ruby, rust, scala, swift, toml, yaml,
-                                  zig.
+                                  r, raku, ruby, rust, scala, sml, swift, toml,
+                                  yaml, zig.
   --datetime-format TEXT          Datetime format (language-specific). Choices:
                                   cpp, csharp, dart, elixir, epoch, erlang,
                                   fsharp, go, haskell, instant, iso, js, julia,
                                   kotlin, lua, matlab, nim, objc, ocaml, perl,
-                                  php, python, r, raku, ruby, rust, scala,
+                                  php, python, r, raku, ruby, rust, scala, sml,
                                   swift, toml, yaml, zig, zoned.
   --bytes-format TEXT             Bytes format (language-specific). Choices:
                                   base64, binary, hex, python.
   --comment-format TEXT           Comment format (language-specific). Choices:
-                                  apostrophe, block, double_dash, double_slash,
-                                  exclamation, hash, line, paren_star, percent,
-                                  semicolon, star_angle.
+                                  apostrophe, backslash, block, double_dash,
+                                  double_slash, exclamation, hash, line, paren,
+                                  paren_star, percent, semicolon, slash,
+                                  star_angle.
   --variable-type-hints TEXT      Variable type hints (language-specific).
                                   Choices: always, auto.
   --declaration-style TEXT        Declaration style (language-specific).
-                                  Choices: assign, auto, block, const, declare,
-                                  def, define, defparameter, dim, final, let,
-                                  let_mut, let_mutable, local, my, short, typed,
-                                  val, var.
+                                  Choices: assign, auto, block, colon, const,
+                                  declare, def, define, defparameter, dim,
+                                  final, let, let_mut, let_mutable, local, mut,
+                                  my, set, short, typed, val, var.
   --dict-entry-style TEXT         Dict entry style (language-specific). Choices:
                                   default, rocket, symbol.
   --dict-format TEXT              Dict format (language-specific). Choices:
@@ -66,13 +67,13 @@ Options:
   --numeric-separator TEXT        Numeric separator (language-specific).
                                   Choices: none, underscore.
   --string-format TEXT            String format (language-specific). Choices:
-                                  double, raw, single, verbatim.
+                                  double, escaped, raw, single, verbatim.
   --trailing-comma TEXT           Trailing comma (language-specific). Choices:
                                   no, yes.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
                                   Choices: allow, error, positional.
   --line-ending TEXT              Line ending style (language-specific).
-                                  Choices: none, semicolon.
+                                  Choices: newline, none, semicolon.
   --default-dict-key-type TEXT    Default type for dict keys (language-specific,
                                   free-form string).
   --default-dict-value-type TEXT  Default type for dict values (language-
@@ -89,4 +90,12 @@ Options:
   --include-preamble / --no-include-preamble
                                   Include language preamble (e.g. package
                                   declarations, imports).
+  --mode [literal|call]           Output mode: 'literal' for data literals,
+                                  'call' for function calls.
+  --call-function TEXT            Function name for call mode (e.g.
+                                  'create_user').
+  --call-params TEXT              Comma-separated parameter names for call mode.
+  --per-element / --no-per-element
+                                  In call mode, each top-level list element
+                                  becomes a separate call.
   --help                          Show this message and exit.
