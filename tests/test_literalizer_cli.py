@@ -963,3 +963,28 @@ def test_call_mode_javascript() -> None:
     )
     assert result.exit_code == 0
     assert "createUser(" in result.output
+
+
+def test_call_mode_invalid_json() -> None:
+    """Call mode surfaces JSON parse errors as CLI errors."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "foo",
+            "--call-params",
+            "x",
+        ],
+        input="{bad json}\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert "Error:" in result.output

@@ -207,6 +207,17 @@ def _resolve_language_option(
     return enum_cls[upper_value]
 
 
+_LITERALIZER_EXCEPTIONS = (
+    literalizer.exceptions.JSONParseError,
+    literalizer.exceptions.JSON5ParseError,
+    literalizer.exceptions.YAMLParseError,
+    literalizer.exceptions.TOMLParseError,
+    literalizer.exceptions.InvalidDictKeyError,
+    literalizer.exceptions.HeterogeneousCoercionError,
+    literalizer.exceptions.NullInCollectionError,
+)
+
+
 def literalize_input(
     *,
     input_string: str,
@@ -230,19 +241,7 @@ def literalize_input(
             new_variable=new_variable,
             error_on_coercion=error_on_coercion,
         )
-    except literalizer.exceptions.JSONParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.JSON5ParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.YAMLParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.TOMLParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.InvalidDictKeyError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.HeterogeneousCoercionError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.NullInCollectionError as exc:
+    except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
 
 
@@ -265,19 +264,7 @@ def literalize_call_input(
             call_params=call_params,
             per_element=per_element,
         )
-    except literalizer.exceptions.JSONParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.JSON5ParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.YAMLParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.TOMLParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.InvalidDictKeyError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.HeterogeneousCoercionError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.NullInCollectionError as exc:
+    except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
 
 
