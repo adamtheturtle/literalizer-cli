@@ -7,7 +7,12 @@ from importlib.metadata import PackageNotFoundError, version
 
 import click
 import literalizer.exceptions
-from literalizer import InputFormat, LiteralizeResult, literalize
+from literalizer import (
+    InputFormat,
+    LiteralizeResult,
+    literalize,
+    literalize_call,
+)
 from literalizer._language import Language, LanguageCls
 from literalizer.languages import ALL_LANGUAGES
 
@@ -202,6 +207,17 @@ def _resolve_language_option(
     return enum_cls[upper_value]
 
 
+_LITERALIZER_EXCEPTIONS = (
+    literalizer.exceptions.JSONParseError,
+    literalizer.exceptions.JSON5ParseError,
+    literalizer.exceptions.YAMLParseError,
+    literalizer.exceptions.TOMLParseError,
+    literalizer.exceptions.InvalidDictKeyError,
+    literalizer.exceptions.HeterogeneousCoercionError,
+    literalizer.exceptions.NullInCollectionError,
+)
+
+
 def literalize_input(
     *,
     input_string: str,
@@ -225,19 +241,30 @@ def literalize_input(
             new_variable=new_variable,
             error_on_coercion=error_on_coercion,
         )
-    except literalizer.exceptions.JSONParseError as exc:
+    except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.JSON5ParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.YAMLParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.TOMLParseError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.InvalidDictKeyError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.HeterogeneousCoercionError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
-    except literalizer.exceptions.NullInCollectionError as exc:
+
+
+def literalize_call_input(
+    *,
+    input_string: str,
+    language: Language,
+    input_format: InputFormat,
+    call_function: str,
+    call_params: tuple[str, ...],
+    per_element: bool,
+) -> LiteralizeResult:
+    """Literalize input as function calls, surfacing errors as CLI errors."""
+    try:
+        return literalize_call(
+            source=input_string,
+            input_format=input_format,
+            language=language,
+            call_function=call_function,
+            call_params=call_params,
+            per_element=per_element,
+        )
+    except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
 
 
@@ -418,6 +445,28 @@ def literalize_input(
     default=False,
     help="Include language preamble (e.g. package declarations, imports).",
 )
+@click.option(
+    "--mode",
+    default="literal",
+    type=click.Choice(choices=("literal", "call"), case_sensitive=False),
+    help="Output mode: 'literal' for data literals,"
+    " 'call' for function calls.",
+)
+@click.option(
+    "--call-function",
+    default=None,
+    help="Function name for call mode (e.g. 'create_user').",
+)
+@click.option(
+    "--call-params",
+    default=None,
+    help="Comma-separated parameter names for call mode.",
+)
+@click.option(
+    "--per-element/--no-per-element",
+    default=True,
+    help="In call mode, each top-level list element becomes a separate call.",
+)
 def main(
     language: str,
     input_format: str,
@@ -451,6 +500,10 @@ def main(
     default_set_element_type: str | None,
     default_ordered_map_value_type: str | None,
     include_preamble: bool,  # noqa: FBT001
+    mode: str,
+    call_function: str | None,
+    call_params: str | None,
+    per_element: bool,  # noqa: FBT001
 ) -> None:
     """Convert data structures to native language literal syntax."""
     input_string = sys.stdin.read()
@@ -505,16 +558,38 @@ def main(
             lang_kwargs[option_name] = value
 
     lang_instance = lang_cls(indent=indent, **lang_kwargs)
-    result = literalize_input(
-        input_string=input_string,
-        language=lang_instance,
-        input_format=_INPUT_FORMAT_MAP[input_format],
-        pre_indent_level=pre_indent_level,
-        include_delimiters=include_delimiters,
-        variable_name=variable_name,
-        new_variable=new_variable,
-        error_on_coercion=error_on_coercion,
-    )
+
+    if mode == "call":
+        if call_function is None:
+            raise click.UsageError(
+                message="--call-function is required in call mode.",
+            )
+        if call_params is None:
+            raise click.UsageError(
+                message="--call-params is required in call mode.",
+            )
+        parsed_params = tuple(
+            p.strip() for p in call_params.split(sep=",") if p.strip()
+        )
+        result = literalize_call_input(
+            input_string=input_string,
+            language=lang_instance,
+            input_format=_INPUT_FORMAT_MAP[input_format],
+            call_function=call_function,
+            call_params=parsed_params,
+            per_element=per_element,
+        )
+    else:
+        result = literalize_input(
+            input_string=input_string,
+            language=lang_instance,
+            input_format=_INPUT_FORMAT_MAP[input_format],
+            pre_indent_level=pre_indent_level,
+            include_delimiters=include_delimiters,
+            variable_name=variable_name,
+            new_variable=new_variable,
+            error_on_coercion=error_on_coercion,
+        )
     if include_preamble:
         for preamble_line in result.preamble:
             click.echo(message=preamble_line)

@@ -260,11 +260,7 @@ def test_error_on_coercion() -> None:
         color=True,
     )
     assert result.exit_code == 1
-    expected = (
-        "Error: Collection contains heterogeneous scalar types "
-        "that would be coerced to strings\n"
-    )
-    assert result.output == expected
+    assert "Collection contains heterogeneous scalar types" in result.output
 
 
 def test_invalid_json_is_shown_cleanly() -> None:
@@ -315,7 +311,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             language=R(empty_dict_key=R.empty_dict_keys.ERROR),
             error_on_coercion=False,
             expected=(
-                "R does not support empty-string dict keys. "
+                'R does not support the dict key "". '
                 "Use empty_dict_key=R.EmptyDictKey.POSITIONAL to emit them "
                 "as unnamed list elements instead."
             ),
@@ -327,7 +323,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             error_on_coercion=True,
             expected=(
                 "Collection contains heterogeneous scalar types "
-                "that would be coerced to strings"
+                "that would be coerced to strings (found types: int, str)"
             ),
         ),
         ExceptionCase(
@@ -336,8 +332,9 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             language=Java(sequence_format=Java.sequence_formats.LIST),
             error_on_coercion=False,
             expected=(
-                "Java's List.of() does not accept null elements. "
-                "Use sequence_format=ARRAY instead."
+                "Java's List.of() does not accept null elements"
+                " (got 1 items, including null)."
+                " Use sequence_format=ARRAY instead."
             ),
         ),
         ExceptionCase(
@@ -841,3 +838,153 @@ def test_declaration_style_option() -> None:
     )
     assert result.exit_code == 0
     assert "const data" in result.output
+
+
+def test_call_mode() -> None:
+    """--mode call converts data to function call expressions."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "create_user",
+            "--call-params",
+            "name,age",
+        ],
+        input='[["alice", 30], ["bob", 25]]\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    expected = (
+        'create_user(name="alice", age=30)\ncreate_user(name="bob", age=25)\n'
+    )
+    assert result.output == expected
+
+
+def test_call_mode_no_per_element() -> None:
+    """--no-per-element passes the whole value as a single argument."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "process",
+            "--call-params",
+            "data",
+            "--no-per-element",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "process(" in result.output
+
+
+def test_call_mode_requires_call_function() -> None:
+    """--mode call without --call-function gives a usage error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-params",
+            "x",
+        ],
+        input="[1]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    assert "--call-function is required" in result.output
+
+
+def test_call_mode_requires_call_params() -> None:
+    """--mode call without --call-params gives a usage error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "foo",
+        ],
+        input="[1]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    assert "--call-params is required" in result.output
+
+
+def test_call_mode_javascript() -> None:
+    """Call mode works with JavaScript (object-style calls)."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "javascript",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "createUser",
+            "--call-params",
+            "name,age",
+        ],
+        input='[["alice", 30]]\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "createUser(" in result.output
+
+
+def test_call_mode_invalid_json() -> None:
+    """Call mode surfaces JSON parse errors as CLI errors."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "foo",
+            "--call-params",
+            "x",
+        ],
+        input="{bad json}\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert "Error:" in result.output
