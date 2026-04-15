@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import pytest
 from click import ClickException
 from click.testing import CliRunner
-from literalizer import InputFormat
+from literalizer import ExistingVariable, InputFormat, NewVariable
 from literalizer._language import Language
 from literalizer.languages import Java, Python, R, Rust
 from pytest_regressions.file_regression import FileRegressionFixture
@@ -24,6 +24,7 @@ class ExceptionCase:
     language: Language
     error_on_coercion: bool
     expected: str
+    variable_form: NewVariable | ExistingVariable | None = None
 
 
 def test_help(file_regression: FileRegressionFixture) -> None:
@@ -380,9 +381,9 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
             input_format=case.input_format,
             pre_indent_level=0,
             include_delimiters=True,
-            variable_name=None,
-            new_variable=True,
+            variable_form=case.variable_form,
             error_on_coercion=case.error_on_coercion,
+            wrap_in_file=False,
         )
 
     assert exc_info.value.message == case.expected
@@ -988,3 +989,26 @@ def test_call_mode_invalid_json() -> None:
     )
     assert result.exit_code == 1
     assert "Error:" in result.output
+
+
+def test_wrap_in_file() -> None:
+    """--wrap-in-file wraps output as a complete source file."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "go",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+            "--wrap-in-file",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0
+    assert "package main" in result.output
+    assert "data" in result.output
