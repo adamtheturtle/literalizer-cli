@@ -4,7 +4,7 @@ Usage: literalize [OPTIONS]
 
 Options:
   --version                       Show the version and exit.
-  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|forth|fortran|fsharp|gleam|go|groovy|haskell|hcl|java|javascript|json5|jsonnet|julia|kotlin|lua|matlab|mojo|nim|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|ruby|rust|scala|scheme|sml|swift|systemverilog|tcl|toml|typescript|v|visualbasic|wren|yaml|zig]
+  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|forth|fortran|fsharp|gleam|go|groovy|haskell|hcl|java|javascript|json5|jsonnet|julia|kotlin|lua|matlab|mojo|nim|nix|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|ruby|rust|scala|scheme|sml|swift|systemverilog|tcl|toml|typescript|v|visualbasic|wren|yaml|zig]
                                   Target language for output.  [required]
   -f, --input-format [json|json5|yaml|toml]
                                   Input data format.
@@ -16,6 +16,8 @@ Options:
   --variable-name TEXT            Variable name for the output assignment.
   --new-variable / --no-new-variable
                                   Declare a new variable.
+  --wrap-in-file / --no-wrap-in-file
+                                  Wrap output as a complete, valid source file.
   --error-on-coercion / --no-error-on-coercion
                                   Error on heterogeneous type coercion.
   --sequence-format TEXT          Sequence format (language-specific). Choices:
@@ -67,7 +69,8 @@ Options:
   --numeric-separator TEXT        Numeric separator (language-specific).
                                   Choices: none, underscore.
   --string-format TEXT            String format (language-specific). Choices:
-                                  double, escaped, raw, single, verbatim.
+                                  double, escaped, explicit, raw, single,
+                                  verbatim.
   --trailing-comma TEXT           Trailing comma (language-specific). Choices:
                                   no, yes.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).

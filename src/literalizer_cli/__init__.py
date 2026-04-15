@@ -8,8 +8,11 @@ from importlib.metadata import PackageNotFoundError, version
 import click
 import literalizer.exceptions
 from literalizer import (
+    ExistingVariable,
     InputFormat,
     LiteralizeResult,
+    NewVariable,
+    VariableForm,
     literalize,
     literalize_call,
 )
@@ -225,9 +228,9 @@ def literalize_input(
     input_format: InputFormat,
     pre_indent_level: int,
     include_delimiters: bool,
-    variable_name: str | None,
-    new_variable: bool,
+    variable_form: VariableForm | None,
     error_on_coercion: bool,
+    wrap_in_file: bool,
 ) -> LiteralizeResult:
     """Literalize input and surface literalizer errors as CLI errors."""
     try:
@@ -237,9 +240,9 @@ def literalize_input(
             language=language,
             pre_indent_level=pre_indent_level,
             include_delimiters=include_delimiters,
-            variable_name=variable_name,
-            new_variable=new_variable,
+            variable_form=variable_form,
             error_on_coercion=error_on_coercion,
+            wrap_in_file=wrap_in_file,
         )
     except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
@@ -250,9 +253,10 @@ def literalize_call_input(
     input_string: str,
     language: Language,
     input_format: InputFormat,
-    call_function: str,
-    call_params: tuple[str, ...],
+    target_function: str,
+    parameter_names: tuple[str, ...],
     per_element: bool,
+    wrap_in_file: bool,
 ) -> LiteralizeResult:
     """Literalize input as function calls, surfacing errors as CLI errors."""
     try:
@@ -260,9 +264,10 @@ def literalize_call_input(
             source=input_string,
             input_format=input_format,
             language=language,
-            call_function=call_function,
-            call_params=call_params,
+            target_function=target_function,
+            parameter_names=parameter_names,
             per_element=per_element,
+            wrap_in_file=wrap_in_file,
         )
     except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
@@ -309,6 +314,11 @@ def literalize_call_input(
     "--new-variable/--no-new-variable",
     default=True,
     help="Declare a new variable.",
+)
+@click.option(
+    "--wrap-in-file/--no-wrap-in-file",
+    default=False,
+    help="Wrap output as a complete, valid source file.",
 )
 @click.option(
     "--error-on-coercion/--no-error-on-coercion",
@@ -475,6 +485,7 @@ def main(
     include_delimiters: bool,  # noqa: FBT001
     variable_name: str | None,
     new_variable: bool,  # noqa: FBT001
+    wrap_in_file: bool,  # noqa: FBT001
     error_on_coercion: bool,  # noqa: FBT001
     sequence_format: str | None,
     set_format: str | None,
@@ -559,6 +570,13 @@ def main(
 
     lang_instance = lang_cls(indent=indent, **lang_kwargs)
 
+    variable_form: VariableForm | None = None
+    if variable_name is not None:
+        if new_variable:
+            variable_form = NewVariable(name=variable_name)
+        else:
+            variable_form = ExistingVariable(name=variable_name)
+
     if mode == "call":
         if call_function is None:
             raise click.UsageError(
@@ -575,9 +593,10 @@ def main(
             input_string=input_string,
             language=lang_instance,
             input_format=_INPUT_FORMAT_MAP[input_format],
-            call_function=call_function,
-            call_params=parsed_params,
+            target_function=call_function,
+            parameter_names=parsed_params,
             per_element=per_element,
+            wrap_in_file=wrap_in_file,
         )
     else:
         result = literalize_input(
@@ -586,9 +605,9 @@ def main(
             input_format=_INPUT_FORMAT_MAP[input_format],
             pre_indent_level=pre_indent_level,
             include_delimiters=include_delimiters,
-            variable_name=variable_name,
-            new_variable=new_variable,
+            variable_form=variable_form,
             error_on_coercion=error_on_coercion,
+            wrap_in_file=wrap_in_file,
         )
     if include_preamble:
         for preamble_line in result.preamble:
