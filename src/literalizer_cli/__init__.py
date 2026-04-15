@@ -478,15 +478,16 @@ def literalize_call_input(
     help="In call mode, each top-level list element becomes a separate call.",
 )
 def main(
+    *,
     language: str,
     input_format: str,
     pre_indent_level: int,
     indent: str,
-    include_delimiters: bool,  # noqa: FBT001
+    include_delimiters: bool,
     variable_name: str | None,
-    new_variable: bool,  # noqa: FBT001
-    wrap_in_file: bool,  # noqa: FBT001
-    error_on_coercion: bool,  # noqa: FBT001
+    new_variable: bool,
+    wrap_in_file: bool,
+    error_on_coercion: bool,
     sequence_format: str | None,
     set_format: str | None,
     date_format: str | None,
@@ -510,11 +511,11 @@ def main(
     default_sequence_element_type: str | None,
     default_set_element_type: str | None,
     default_ordered_map_value_type: str | None,
-    include_preamble: bool,  # noqa: FBT001
+    include_preamble: bool,
     mode: str,
     call_function: str | None,
     call_params: str | None,
-    per_element: bool,  # noqa: FBT001
+    per_element: bool,
 ) -> None:
     """Convert data structures to native language literal syntax."""
     input_string = sys.stdin.read()
