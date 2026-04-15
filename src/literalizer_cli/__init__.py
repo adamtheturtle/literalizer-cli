@@ -260,8 +260,8 @@ def literalize_call_input(
             source=input_string,
             input_format=input_format,
             language=language,
-            call_function=call_function,
-            call_params=call_params,
+            target_function=call_function,
+            parameter_names=call_params,
             per_element=per_element,
         )
     except _LITERALIZER_EXCEPTIONS as exc:
