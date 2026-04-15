@@ -2,12 +2,12 @@
 
 import textwrap
 from dataclasses import dataclass
+from typing import Any
 
 import pytest
 from click import ClickException
 from click.testing import CliRunner
 from literalizer import ExistingVariable, InputFormat, NewVariable
-from literalizer._language import Language
 from literalizer.languages import Java, Python, R, Rust
 from pytest_regressions.file_regression import FileRegressionFixture
 
@@ -21,7 +21,7 @@ class ExceptionCase:
 
     input_format: InputFormat
     input_string: str
-    language: Language
+    language: Any
     error_on_coercion: bool
     expected: str
     variable_form: NewVariable | ExistingVariable | None = None
