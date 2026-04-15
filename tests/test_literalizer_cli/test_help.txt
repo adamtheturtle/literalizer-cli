@@ -16,6 +16,8 @@ Options:
   --variable-name TEXT            Variable name for the output assignment.
   --new-variable / --no-new-variable
                                   Declare a new variable.
+  --wrap-in-file / --no-wrap-in-file
+                                  Wrap output as a complete, valid source file.
   --error-on-coercion / --no-error-on-coercion
                                   Error on heterogeneous type coercion.
   --sequence-format TEXT          Sequence format (language-specific). Choices:
@@ -67,7 +69,8 @@ Options:
   --numeric-separator TEXT        Numeric separator (language-specific).
                                   Choices: none, underscore.
   --string-format TEXT            String format (language-specific). Choices:
-                                  double, escaped, raw, single, verbatim.
+                                  double, escaped, explicit, raw, single,
+                                  verbatim.
   --trailing-comma TEXT           Trailing comma (language-specific). Choices:
                                   no, yes.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
