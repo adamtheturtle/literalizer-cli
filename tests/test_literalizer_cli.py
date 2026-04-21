@@ -22,7 +22,6 @@ class ExceptionCase:
     input_format: InputFormat
     input_string: str
     language: Any
-    error_on_coercion: bool
     expected: str
     variable_form: NewVariable | ExistingVariable | None = None
 
@@ -244,8 +243,8 @@ def test_no_new_variable() -> None:
     assert result.output == expected
 
 
-def test_error_on_coercion() -> None:
-    """--error-on-coercion raises error for heterogeneous types."""
+def test_heterogeneous_collection_error() -> None:
+    """Heterogeneous scalar collections surface as CLI errors."""
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -254,14 +253,13 @@ def test_error_on_coercion() -> None:
             "rust",
             "-f",
             "json",
-            "--error-on-coercion",
         ],
         input='[1, "a"]\n',
         catch_exceptions=False,
         color=True,
     )
     assert result.exit_code == 1
-    assert "Collection contains heterogeneous scalar types" in result.output
+    assert "heterogeneous" in result.output.lower()
 
 
 def test_invalid_json_is_shown_cleanly() -> None:
@@ -310,7 +308,6 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             input_format=InputFormat.JSON,
             input_string='{"": 1}\n',
             language=R(empty_dict_key=R.empty_dict_keys.ERROR),
-            error_on_coercion=False,
             expected=(
                 'R does not support the dict key "". '
                 "Use empty_dict_key=R.EmptyDictKey.POSITIONAL to emit them "
@@ -321,17 +318,16 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             input_format=InputFormat.JSON,
             input_string='[1, "a"]\n',
             language=Rust(sequence_format=Rust.sequence_formats.VEC),
-            error_on_coercion=True,
             expected=(
-                "Collection contains heterogeneous scalar types "
-                "that would be coerced to strings (found types: int, str)"
+                "Collection contains heterogeneous scalar types that "
+                "cannot be represented in the target language "
+                "(found types: int, str)"
             ),
         ),
         ExceptionCase(
             input_format=InputFormat.JSON,
             input_string="[null]\n",
             language=Java(sequence_format=Java.sequence_formats.LIST),
-            error_on_coercion=False,
             expected=(
                 "Java's List.of() does not accept null elements"
                 " (got 1 items, including null)."
@@ -342,14 +338,12 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             input_format=InputFormat.JSON,
             input_string='{"a": }\n',
             language=Python(),
-            error_on_coercion=False,
             expected="Invalid JSON: Expecting value at line 1 column 7",
         ),
         ExceptionCase(
             input_format=InputFormat.YAML,
             input_string="a: [1\n",
             language=Python(),
-            error_on_coercion=False,
             expected=(
                 "Invalid YAML: while parsing a flow sequence\n"
                 '  in "<unicode string>", line 1, column 4:\n'
@@ -364,7 +358,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
     ],
     ids=(
         "empty_dict_key",
-        "heterogeneous_coercion",
+        "heterogeneous_collection",
         "null_in_collection",
         "json_parse",
         "yaml_parse",
@@ -382,7 +376,6 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
             pre_indent_level=0,
             include_delimiters=True,
             variable_form=case.variable_form,
-            error_on_coercion=case.error_on_coercion,
             wrap_in_file=False,
         )
 
@@ -816,6 +809,148 @@ def test_trailing_comma_option() -> None:
     """
     )
     assert result.output == expected
+
+
+def test_modifier_option_java() -> None:
+    """--modifier adds declaration modifiers in supported languages."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "java",
+            "-f",
+            "json",
+            "--variable-name",
+            "DATA",
+            "--modifier",
+            "public",
+            "--modifier",
+            "static",
+            "--modifier",
+            "final",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output.startswith("public static final ")
+    assert "DATA" in result.output
+
+
+def test_modifier_option_case_insensitive() -> None:
+    """--modifier accepts values case-insensitively."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "csharp",
+            "-f",
+            "json",
+            "--variable-name",
+            "Data",
+            "--modifier",
+            "READONLY",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, result.output
+    assert "readonly " in result.output
+
+
+def test_modifier_unsupported_for_language() -> None:
+    """Error when --modifier is used with a language without modifiers."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+            "--modifier",
+            "final",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    assert "--modifier is not supported for language 'python'" in result.output
+
+
+def test_modifier_invalid_value() -> None:
+    """Error when --modifier is given a value the language does not support."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "java",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+            "--modifier",
+            "readonly",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    assert "Invalid value 'readonly' for --modifier" in result.output
+
+
+def test_modifier_requires_variable_name() -> None:
+    """--modifier without --variable-name is a usage error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "java",
+            "-f",
+            "json",
+            "--modifier",
+            "final",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    assert "--modifier requires --variable-name" in result.output
+
+
+def test_modifier_conflicts_with_no_new_variable() -> None:
+    """--modifier with --no-new-variable is a usage error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "java",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+            "--no-new-variable",
+            "--modifier",
+            "final",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    assert "--modifier cannot be used with --no-new-variable" in result.output
 
 
 def test_declaration_style_option() -> None:
