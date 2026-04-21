@@ -4,7 +4,12 @@ Changelog
 Next
 ----
 
-- Bump ``literalizer`` to 2026.4.13.
+- Bump ``literalizer`` to 2026.4.21.1.
+- Add ``--modifier`` (repeatable) for declaration modifiers on new
+  variables in languages that support them (Java, C#, C++).
+- Remove ``--error-on-coercion``: ``literalizer`` now always errors on
+  heterogeneous data that cannot be represented in the target
+  language.
 - Add ``--mode call`` for converting data into function call expressions,
   with ``--call-function``, ``--call-params``, and ``--per-element`` options.
 

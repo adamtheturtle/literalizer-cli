@@ -164,6 +164,52 @@ _LINE_ENDING_HELP = _choices_help(
     option_name="line_ending",
 )
 
+
+def _all_modifier_choices() -> list[str]:
+    """Collect every modifier name across all languages."""
+    members: set[str] = set()
+    for lang_cls in ALL_LANGUAGES:
+        members.update(m.lower() for m in lang_cls.Modifiers.__members__)
+    return sorted(members)
+
+
+_MODIFIER_HELP = (
+    "Declaration modifier (language-specific, repeatable). "
+    f"Choices: {', '.join(_all_modifier_choices())}."
+)
+
+
+def _resolve_modifiers(
+    *,
+    lang_cls: LanguageCls,
+    values: tuple[str, ...],
+) -> frozenset[enum.Enum]:
+    """Resolve CLI modifier strings to the language's Modifiers members."""
+    modifier_enum = lang_cls.Modifiers
+    if not modifier_enum.__members__:
+        lang_name = lang_cls.__name__.lower()
+        raise click.UsageError(
+            message=(
+                f"--modifier is not supported for language '{lang_name}'."
+            ),
+        )
+    resolved: set[enum.Enum] = set()
+    for value in values:
+        upper_value = value.upper()
+        if upper_value not in modifier_enum.__members__:
+            choices = ", ".join(
+                sorted(m.lower() for m in modifier_enum.__members__),
+            )
+            raise click.UsageError(
+                message=(
+                    f"Invalid value '{value}' for --modifier. "
+                    f"Valid choices: {choices}."
+                ),
+            )
+        resolved.add(modifier_enum[upper_value])
+    return frozenset(resolved)
+
+
 # Language options that take a free-form string rather than an enum.
 # Maps CLI option name to a getter for the ``supports_*`` flag.
 _STRING_OPTIONS: dict[
@@ -216,7 +262,7 @@ _LITERALIZER_EXCEPTIONS = (
     literalizer.exceptions.YAMLParseError,
     literalizer.exceptions.TOMLParseError,
     literalizer.exceptions.InvalidDictKeyError,
-    literalizer.exceptions.HeterogeneousCoercionError,
+    literalizer.exceptions.HeterogeneousCollectionError,
     literalizer.exceptions.NullInCollectionError,
 )
 
@@ -229,7 +275,6 @@ def literalize_input(
     pre_indent_level: int,
     include_delimiters: bool,
     variable_form: VariableForm | None,
-    error_on_coercion: bool,
     wrap_in_file: bool,
 ) -> LiteralizeResult:
     """Literalize input and surface literalizer errors as CLI errors."""
@@ -241,7 +286,6 @@ def literalize_input(
             pre_indent_level=pre_indent_level,
             include_delimiters=include_delimiters,
             variable_form=variable_form,
-            error_on_coercion=error_on_coercion,
             wrap_in_file=wrap_in_file,
         )
     except _LITERALIZER_EXCEPTIONS as exc:
@@ -316,14 +360,15 @@ def literalize_call_input(
     help="Declare a new variable.",
 )
 @click.option(
+    "--modifier",
+    "modifiers",
+    multiple=True,
+    help=_MODIFIER_HELP,
+)
+@click.option(
     "--wrap-in-file/--no-wrap-in-file",
     default=False,
     help="Wrap output as a complete, valid source file.",
-)
-@click.option(
-    "--error-on-coercion/--no-error-on-coercion",
-    default=False,
-    help="Error on heterogeneous type coercion.",
 )
 @click.option(
     "--sequence-format",
@@ -486,8 +531,8 @@ def main(
     include_delimiters: bool,
     variable_name: str | None,
     new_variable: bool,
+    modifiers: tuple[str, ...],
     wrap_in_file: bool,
-    error_on_coercion: bool,
     sequence_format: str | None,
     set_format: str | None,
     date_format: str | None,
@@ -574,9 +619,27 @@ def main(
     variable_form: VariableForm | None = None
     if variable_name is not None:
         if new_variable:
-            variable_form = NewVariable(name=variable_name)
+            resolved_modifiers: frozenset[enum.Enum] = (
+                _resolve_modifiers(lang_cls=lang_cls, values=modifiers)
+                if modifiers
+                else frozenset()
+            )
+            variable_form = NewVariable(
+                name=variable_name,
+                modifiers=resolved_modifiers,
+            )
         else:
+            if modifiers:
+                raise click.UsageError(
+                    message=(
+                        "--modifier cannot be used with --no-new-variable."
+                    ),
+                )
             variable_form = ExistingVariable(name=variable_name)
+    elif modifiers:
+        raise click.UsageError(
+            message="--modifier requires --variable-name.",
+        )
 
     if mode == "call":
         if call_function is None:
@@ -607,7 +670,6 @@ def main(
             pre_indent_level=pre_indent_level,
             include_delimiters=include_delimiters,
             variable_form=variable_form,
-            error_on_coercion=error_on_coercion,
             wrap_in_file=wrap_in_file,
         )
     if include_preamble:

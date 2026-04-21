@@ -16,10 +16,11 @@ Options:
   --variable-name TEXT            Variable name for the output assignment.
   --new-variable / --no-new-variable
                                   Declare a new variable.
+  --modifier TEXT                 Declaration modifier (language-specific,
+                                  repeatable). Choices: const, final, private,
+                                  protected, public, readonly, static.
   --wrap-in-file / --no-wrap-in-file
                                   Wrap output as a complete, valid source file.
-  --error-on-coercion / --no-error-on-coercion
-                                  Error on heterogeneous type coercion.
   --sequence-format TEXT          Sequence format (language-specific). Choices:
                                   array, cell_array, dynamic_array,
                                   initializer_list, list, seq, sequence, slice,
@@ -52,7 +53,7 @@ Options:
                                   Choices: assign, auto, block, colon, const,
                                   declare, def, define, defparameter, dim,
                                   final, let, let_mut, let_mutable, local, mut,
-                                  my, set, short, typed, val, var.
+                                  my, set, short, static, typed, val, var.
   --dict-entry-style TEXT         Dict entry style (language-specific). Choices:
                                   default, rocket, symbol.
   --dict-format TEXT              Dict format (language-specific). Choices:
