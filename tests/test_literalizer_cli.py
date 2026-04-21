@@ -1169,6 +1169,171 @@ def test_call_mode_invalid_json() -> None:
     assert "Error:" in result.output
 
 
+def test_pre_indent_level_with_variable_name() -> None:
+    """Pre-indent level uniformly offsets every line of a declaration."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--pre-indent-level",
+            "1",
+            "--variable-name",
+            "data",
+        ],
+        input='{"a": 1, "b": [2, 3]}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, result.output
+    expected = '    data = {\n        "a": 1,\n        "b": (2, 3),\n    }\n'
+    assert result.output == expected
+
+
+def test_heterogeneous_strategy_rust_tagged_enum() -> None:
+    """--heterogeneous-strategy tagged_enum wraps Rust heterogeneous values."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "rust",
+            "-f",
+            "json",
+            "--heterogeneous-strategy",
+            "tagged_enum",
+            "--variable-name",
+            "data",
+            "--include-preamble",
+        ],
+        input='[1, "a"]\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, result.output
+    expected = (
+        "enum Value {\n"
+        "    I32(i32),\n"
+        "    Str(&'static str),\n"
+        "}\n"
+        "let data = vec![\n"
+        "    Value::I32(1),\n"
+        '    Value::Str("a"),\n'
+        "];\n"
+    )
+    assert result.output == expected
+
+
+def test_heterogeneous_strategy_invalid_for_language() -> None:
+    """Error when the strategy is not valid for the language."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--heterogeneous-strategy",
+            "tagged_enum",
+        ],
+        input='[1, "a"]\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code != 0
+    expected = (
+        "Usage: literalize [OPTIONS]\n"
+        "Try 'literalize --help' for help.\n"
+        "\n"
+        "Error: Invalid value 'tagged_enum' for "
+        "--heterogeneous-strategy. Valid choices: error.\n"
+    )
+    assert result.output == expected
+
+
+def test_call_mode_language_has_no_call_syntax() -> None:
+    """Languages with no call syntax raise a clean CLI error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "yaml",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "foo",
+            "--call-params",
+            "x",
+        ],
+        input="[[1]]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert result.output == "Error: Yaml has no function call syntax\n"
+
+
+def test_call_mode_not_implemented_for_language() -> None:
+    """Languages without call rendering implemented raise a clean error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "cobol",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "foo",
+            "--call-params",
+            "x",
+        ],
+        input="[[1]]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    expected = (
+        "Error: literalizer does not support "
+        "function call rendering for Cobol\n"
+    )
+    assert result.output == expected
+
+
+def test_call_mode_parameter_count_mismatch() -> None:
+    """Mismatched --call-params count raises a clean CLI error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "foo",
+            "--call-params",
+            "x,y,z",
+        ],
+        input="[[1]]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert result.output == "Error: Expected 3 parameters but got 1 values\n"
+
+
 def test_wrap_in_file() -> None:
     """--wrap-in-file wraps output as a complete source file."""
     runner = CliRunner()
