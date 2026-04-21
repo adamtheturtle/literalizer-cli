@@ -259,7 +259,12 @@ def test_heterogeneous_collection_error() -> None:
         color=True,
     )
     assert result.exit_code == 1
-    assert "heterogeneous" in result.output.lower()
+    expected = (
+        "Error: Collection contains heterogeneous scalar types that "
+        "cannot be represented in the target language "
+        "(found types: int, str)\n"
+    )
+    assert result.output == expected
 
 
 def test_invalid_json_is_shown_cleanly() -> None:
@@ -835,8 +840,14 @@ def test_modifier_option_java() -> None:
         color=True,
     )
     assert result.exit_code == 0, result.output
-    assert result.output.startswith("public static final ")
-    assert "DATA" in result.output
+    expected = textwrap.dedent(
+        text="""\
+        public static final Map<String, Integer> DATA = Map.ofEntries(
+            Map.entry("a", 1)
+        );
+    """
+    )
+    assert result.output == expected
 
 
 def test_modifier_option_case_insensitive() -> None:
@@ -859,7 +870,14 @@ def test_modifier_option_case_insensitive() -> None:
         color=True,
     )
     assert result.exit_code == 0, result.output
-    assert "readonly " in result.output
+    expected = textwrap.dedent(
+        text="""\
+        readonly Dictionary<string, int> Data = new Dictionary<string, int> {
+            ["a"] = 1
+        };
+    """
+    )
+    assert result.output == expected
 
 
 def test_modifier_unsupported_for_language() -> None:
@@ -881,8 +899,14 @@ def test_modifier_unsupported_for_language() -> None:
         catch_exceptions=False,
         color=True,
     )
+    expected = (
+        "Usage: literalize [OPTIONS]\n"
+        "Try 'literalize --help' for help.\n"
+        "\n"
+        "Error: --modifier is not supported for language 'python'.\n"
+    )
     assert result.exit_code != 0
-    assert "--modifier is not supported for language 'python'" in result.output
+    assert result.output == expected
 
 
 def test_modifier_invalid_value() -> None:
@@ -904,8 +928,15 @@ def test_modifier_invalid_value() -> None:
         catch_exceptions=False,
         color=True,
     )
+    expected = (
+        "Usage: literalize [OPTIONS]\n"
+        "Try 'literalize --help' for help.\n"
+        "\n"
+        "Error: Invalid value 'readonly' for --modifier. "
+        "Valid choices: final, private, protected, public, static.\n"
+    )
     assert result.exit_code != 0
-    assert "Invalid value 'readonly' for --modifier" in result.output
+    assert result.output == expected
 
 
 def test_modifier_requires_variable_name() -> None:
@@ -925,8 +956,14 @@ def test_modifier_requires_variable_name() -> None:
         catch_exceptions=False,
         color=True,
     )
+    expected = (
+        "Usage: literalize [OPTIONS]\n"
+        "Try 'literalize --help' for help.\n"
+        "\n"
+        "Error: --modifier requires --variable-name.\n"
+    )
     assert result.exit_code != 0
-    assert "--modifier requires --variable-name" in result.output
+    assert result.output == expected
 
 
 def test_modifier_conflicts_with_no_new_variable() -> None:
@@ -949,8 +986,14 @@ def test_modifier_conflicts_with_no_new_variable() -> None:
         catch_exceptions=False,
         color=True,
     )
+    expected = (
+        "Usage: literalize [OPTIONS]\n"
+        "Try 'literalize --help' for help.\n"
+        "\n"
+        "Error: --modifier cannot be used with --no-new-variable.\n"
+    )
     assert result.exit_code != 0
-    assert "--modifier cannot be used with --no-new-variable" in result.output
+    assert result.output == expected
 
 
 def test_declaration_style_option() -> None:
