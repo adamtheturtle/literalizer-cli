@@ -78,6 +78,8 @@ Options:
                                   Choices: allow, error, positional.
   --line-ending TEXT              Line ending style (language-specific).
                                   Choices: newline, none, semicolon.
+  --heterogeneous-strategy TEXT   Heterogeneous-collection strategy (language-
+                                  specific). Choices: error, tagged_enum.
   --default-dict-key-type TEXT    Default type for dict keys (language-specific,
                                   free-form string).
   --default-dict-value-type TEXT  Default type for dict values (language-

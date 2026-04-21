@@ -59,6 +59,7 @@ _OPTION_TO_ENUM: dict[str, Callable[[LanguageCls], type[enum.Enum]]] = {
     "trailing_comma": lambda cls: cls.TrailingCommas,
     "empty_dict_key": lambda cls: cls.EmptyDictKey,
     "line_ending": lambda cls: cls.LineEndings,
+    "heterogeneous_strategy": lambda cls: cls.HeterogeneousStrategies,
 }
 
 
@@ -163,6 +164,10 @@ _LINE_ENDING_HELP = _choices_help(
     label="Line ending style",
     option_name="line_ending",
 )
+_HETEROGENEOUS_STRATEGY_HELP = _choices_help(
+    label="Heterogeneous-collection strategy",
+    option_name="heterogeneous_strategy",
+)
 
 
 def _all_modifier_choices() -> list[str]:
@@ -264,6 +269,12 @@ _LITERALIZER_EXCEPTIONS = (
     literalizer.exceptions.InvalidDictKeyError,
     literalizer.exceptions.HeterogeneousCollectionError,
     literalizer.exceptions.NullInCollectionError,
+    literalizer.exceptions.PerElementNotListError,
+    literalizer.exceptions.ParameterCountMismatchError,
+    literalizer.exceptions.CallsNotSupportedByLanguageError,
+    literalizer.exceptions.CallsNotSupportedByToolError,
+    literalizer.exceptions.IncompatibleFormatsError,
+    literalizer.exceptions.UnrepresentableIntegerError,
 )
 
 
@@ -461,6 +472,11 @@ def literalize_call_input(
     help=_LINE_ENDING_HELP,
 )
 @click.option(
+    "--heterogeneous-strategy",
+    default=None,
+    help=_HETEROGENEOUS_STRATEGY_HELP,
+)
+@click.option(
     "--default-dict-key-type",
     default=None,
     help="Default type for dict keys (language-specific, free-form string).",
@@ -551,6 +567,7 @@ def main(
     trailing_comma: str | None,
     empty_dict_key: str | None,
     line_ending: str | None,
+    heterogeneous_strategy: str | None,
     default_dict_key_type: str | None,
     default_dict_value_type: str | None,
     default_sequence_element_type: str | None,
@@ -586,6 +603,7 @@ def main(
         "trailing_comma": trailing_comma,
         "empty_dict_key": empty_dict_key,
         "line_ending": line_ending,
+        "heterogeneous_strategy": heterogeneous_strategy,
     }
     for option_name, value in cli_language_options.items():
         if value is not None:
