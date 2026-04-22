@@ -52,8 +52,9 @@ Options:
   --declaration-style TEXT        Declaration style (language-specific).
                                   Choices: assign, auto, block, colon, const,
                                   declare, def, define, defparameter, dim,
-                                  final, let, let_mut, let_mutable, local, mut,
-                                  my, set, short, static, typed, val, var.
+                                  final, lazy_static, let, let_mut, let_mutable,
+                                  local, mut, my, set, short, static, typed,
+                                  val, var.
   --dict-entry-style TEXT         Dict entry style (language-specific). Choices:
                                   default, rocket, symbol.
   --dict-format TEXT              Dict format (language-specific). Choices:
