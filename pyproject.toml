@@ -34,7 +34,7 @@ dynamic = [
 ]
 dependencies = [
     "click>=8.3.0,<8.4.0",
-    "literalizer==2026.4.23",
+    "literalizer==2026.4.24.1",
 ]
 optional-dependencies.dev = [
     "actionlint-py==1.7.12.24",

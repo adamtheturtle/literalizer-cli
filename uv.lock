@@ -517,17 +517,18 @@ wheels = [
 
 [[package]]
 name = "literalizer"
-version = "2026.4.21.5"
+version = "2026.4.24.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
+    { name = "pyhumps" },
     { name = "pyjson5" },
     { name = "ruamel-yaml" },
     { name = "tomlkit" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/11/5a/3b5075e4419fb34ae1a1f2fcd075bc145175516119feb35e68656d9636e8/literalizer-2026.4.21.5.tar.gz", hash = "sha256:c6f47da7abdb7c58f728dca838413c43f4681ca93ecc3b399956e548cd7d939e", size = 1158587, upload-time = "2026-04-21T21:33:52.589Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4c/50/e4b2d5837ff9096e24dd66d5b8af67b6ef202284c7407f5b382dd1133379/literalizer-2026.4.24.1.tar.gz", hash = "sha256:0293c71e15910b9c3d051f643e88d1171efcd31da35ea6d4f859cd05b2314034", size = 1314626, upload-time = "2026-04-24T09:01:16.314Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/49/85/0e7445b7a44faecb68f545fa43df1b836ef41068a3bcb1c8c12c88573eb3/literalizer-2026.4.21.5-py3-none-any.whl", hash = "sha256:b1f21c828f90c1f53d483880a37500ff1db492aa9e7af06761b5e05abb189060", size = 388660, upload-time = "2026-04-21T21:33:50.362Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/d8/32d934f6e3121d5d45462078d8c45542700c2a87e60aee7fd82b29c2aa6c/literalizer-2026.4.24.1-py3-none-any.whl", hash = "sha256:d0e6c29eb65d80ce94c16c3d8f3eec3ed13f1ca0ff9f4bb3004633206061bc53", size = 419599, upload-time = "2026-04-24T09:01:13.926Z" },
 ]
 
 [[package]]
@@ -584,7 +585,7 @@ requires-dist = [
     { name = "deptry", marker = "extra == 'dev'", specifier = "==0.25.1" },
     { name = "furo", marker = "extra == 'dev'", specifier = "==2025.12.19" },
     { name = "homebrew-pypi-poet", marker = "extra == 'release'", specifier = "==0.10" },
-    { name = "literalizer", specifier = "==2026.4.21.5" },
+    { name = "literalizer", specifier = "==2026.4.24.1" },
     { name = "mypy", extras = ["faster-cache"], marker = "extra == 'dev'", specifier = "==1.20.2" },
     { name = "mypy-strict-kwargs", marker = "extra == 'dev'", specifier = "==2026.1.12" },
     { name = "prek", marker = "extra == 'dev'", specifier = "==0.3.10" },
@@ -1068,6 +1069,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887", size = 4968631, upload-time = "2025-06-21T13:39:12.283Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217, upload-time = "2025-06-21T13:39:07.939Z" },
+]
+
+[[package]]
+name = "pyhumps"
+version = "3.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/83/fa6f8fb7accb21f39e8f2b6a18f76f6d90626bdb0a5e5448e5cc9b8ab014/pyhumps-3.8.0.tar.gz", hash = "sha256:498026258f7ee1a8e447c2e28526c0bea9407f9a59c03260aee4bd6c04d681a3", size = 9018, upload-time = "2022-10-21T10:38:59.496Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9e/11/a1938340ecb32d71e47ad4914843775011e6e9da59ba1229f181fef3119e/pyhumps-3.8.0-py3-none-any.whl", hash = "sha256:060e1954d9069f428232a1adda165db0b9d8dfdce1d265d36df7fbff540acfd6", size = 6095, upload-time = "2022-10-21T10:38:58.231Z" },
 ]
 
 [[package]]
