@@ -4,6 +4,10 @@ Changelog
 Next
 ----
 
+2026.04.30
+----------
+
+
 - Bump ``literalizer`` to 2026.4.29 (adds Roc, Wren, Mojo, V, Ada, Nim,
   Tcl, Scheme, PureScript, OCaml, SystemVerilog, COBOL, Fortran, Dart,
   Dhall, Elixir, Elm, and PowerShell to ``literalize_call`` support).
