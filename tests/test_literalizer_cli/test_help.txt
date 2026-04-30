@@ -4,7 +4,7 @@ Usage: literalize [OPTIONS]
 
 Options:
   --version                       Show the version and exit.
-  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|forth|fortran|fsharp|gleam|go|groovy|haskell|hcl|java|javascript|json5|jsonnet|julia|kotlin|lua|matlab|mojo|nim|nix|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|ruby|rust|scala|scheme|sml|swift|systemverilog|tcl|toml|typescript|v|visualbasic|wren|yaml|zig]
+  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|forth|fortran|fsharp|gleam|go|groovy|haskell|hcl|java|javascript|json5|jsonnet|julia|kotlin|lua|matlab|mojo|nim|nix|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|roc|ruby|rust|scala|scheme|sml|swift|systemverilog|tcl|toml|typescript|v|visualbasic|wren|yaml|zig]
                                   Target language for output.  [required]
   -f, --input-format [json|json5|yaml|toml]
                                   Input data format.
@@ -80,7 +80,9 @@ Options:
   --line-ending TEXT              Line ending style (language-specific).
                                   Choices: newline, none, semicolon.
   --heterogeneous-strategy TEXT   Heterogeneous-collection strategy (language-
-                                  specific). Choices: error, tagged_enum.
+                                  specific). Choices: error, interface,
+                                  object_variant, tagged_enum, union_type,
+                                  variant.
   --default-dict-key-type TEXT    Default type for dict keys (language-specific,
                                   free-form string).
   --default-dict-value-type TEXT  Default type for dict values (language-
@@ -105,4 +107,10 @@ Options:
   --per-element / --no-per-element
                                   In call mode, each top-level list element
                                   becomes a separate call.
+  --ref-case [camel|kebab|pascal|snake|upper_snake]
+                                  Identifier case for ``$ref`` markers in input
+                                  data. When set, objects of the form ``{"$ref":
+                                  "name"}`` are emitted as bare identifiers re-
+                                  cased to the chosen convention instead of as
+                                  nested dicts.
   --help                          Show this message and exit.

@@ -4,6 +4,12 @@ Changelog
 Next
 ----
 
+- Bump ``literalizer`` to 2026.4.29 (adds Roc, Wren, Mojo, V, Ada, Nim,
+  Tcl, Scheme, PureScript, OCaml, SystemVerilog, COBOL, Fortran, Dart,
+  Dhall, Elixir, Elm, and PowerShell to ``literalize_call`` support).
+- Add ``--ref-case`` for emitting ``$ref`` markers in input data as
+  bare identifiers re-cased to ``snake``, ``camel``, ``pascal``,
+  ``upper_snake``, or ``kebab``.
 - Bump ``literalizer`` to 2026.4.21.4.
 - Add ``--heterogeneous-strategy`` to pick between per-language
   strategies for collections with mixed scalar types (e.g. Rust's
