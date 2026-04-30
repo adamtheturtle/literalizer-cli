@@ -9,6 +9,7 @@ import click
 import literalizer.exceptions
 from literalizer import (
     ExistingVariable,
+    IdentifierCase,
     InputFormat,
     LiteralizeResult,
     NewVariable,
@@ -38,6 +39,10 @@ _INPUT_FORMAT_MAP: dict[str, InputFormat] = {
 }
 
 _INDENT = "    "
+
+_REF_CASE_MAP: dict[str, IdentifierCase] = {
+    member.name.lower(): member for member in IdentifierCase
+}
 
 # Map from CLI option name to a getter for the enum class.
 _OPTION_TO_ENUM: dict[str, Callable[[LanguageCls], type[enum.Enum]]] = {
@@ -275,6 +280,7 @@ _LITERALIZER_EXCEPTIONS = (
     literalizer.exceptions.CallsNotSupportedByToolError,
     literalizer.exceptions.IncompatibleFormatsError,
     literalizer.exceptions.UnrepresentableIntegerError,
+    literalizer.exceptions.UnsupportedIdentifierCaseError,
 )
 
 
@@ -287,6 +293,7 @@ def literalize_input(
     include_delimiters: bool,
     variable_form: VariableForm | None,
     wrap_in_file: bool,
+    ref_case: IdentifierCase | None,
 ) -> LiteralizeResult:
     """Literalize input and surface literalizer errors as CLI errors."""
     try:
@@ -298,6 +305,7 @@ def literalize_input(
             include_delimiters=include_delimiters,
             variable_form=variable_form,
             wrap_in_file=wrap_in_file,
+            ref_case=ref_case,
         )
     except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
@@ -312,6 +320,7 @@ def literalize_call_input(
     parameter_names: tuple[str, ...],
     per_element: bool,
     wrap_in_file: bool,
+    ref_case: IdentifierCase | None,
 ) -> LiteralizeResult:
     """Literalize input as function calls, surfacing errors as CLI errors."""
     try:
@@ -323,6 +332,7 @@ def literalize_call_input(
             parameter_names=parameter_names,
             per_element=per_element,
             wrap_in_file=wrap_in_file,
+            ref_case=ref_case,
         )
     except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
@@ -538,6 +548,17 @@ def literalize_call_input(
     default=True,
     help="In call mode, each top-level list element becomes a separate call.",
 )
+@click.option(
+    "--ref-case",
+    default=None,
+    type=click.Choice(choices=sorted(_REF_CASE_MAP), case_sensitive=False),
+    help=(
+        "Identifier case for ``$ref`` markers in input data. When set, "
+        'objects of the form ``{"$ref": "name"}`` are emitted as '
+        "bare identifiers re-cased to the chosen convention instead of "
+        "as nested dicts."
+    ),
+)
 def main(
     *,
     language: str,
@@ -578,6 +599,7 @@ def main(
     call_function: str | None,
     call_params: str | None,
     per_element: bool,
+    ref_case: str | None,
 ) -> None:
     """Convert data structures to native language literal syntax."""
     input_string = sys.stdin.read()
@@ -659,6 +681,10 @@ def main(
             message="--modifier requires --variable-name.",
         )
 
+    resolved_ref_case = (
+        _REF_CASE_MAP[ref_case.lower()] if ref_case is not None else None
+    )
+
     if mode == "call":
         if call_function is None:
             raise click.UsageError(
@@ -679,6 +705,7 @@ def main(
             parameter_names=parsed_params,
             per_element=per_element,
             wrap_in_file=wrap_in_file,
+            ref_case=resolved_ref_case,
         )
     else:
         result = literalize_input(
@@ -689,6 +716,7 @@ def main(
             include_delimiters=include_delimiters,
             variable_form=variable_form,
             wrap_in_file=wrap_in_file,
+            ref_case=resolved_ref_case,
         )
     if include_preamble:
         for preamble_line in result.preamble:

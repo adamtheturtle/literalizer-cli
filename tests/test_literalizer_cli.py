@@ -86,6 +86,58 @@ def test_literalize_json_to_go() -> None:
     assert result.output == expected
 
 
+def test_ref_case_emits_bare_identifiers() -> None:
+    """``--ref-case`` re-cases ``$ref`` markers to bare identifiers."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "--language",
+            "python",
+            "--input-format",
+            "json",
+            "--ref-case",
+            "snake",
+        ],
+        input='{"a": {"$ref": "userId"}}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    expected = textwrap.dedent(
+        text="""\
+        {
+            "a": user_id,
+        }
+    """
+    )
+    assert result.output == expected
+
+
+def test_ref_case_unsupported_for_language() -> None:
+    """An unsupported ref-case for the language exits with a clean error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "--language",
+            "python",
+            "--input-format",
+            "json",
+            "--ref-case",
+            "camel",
+        ],
+        input='{"a": {"$ref": "userId"}}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert (
+        result.output
+        == "Error: Python does not support identifier case 'CAMEL'\n"
+    )
+
+
 def test_literalize_yaml_to_python() -> None:
     """YAML input is converted to Python literal syntax."""
     runner = CliRunner()
@@ -295,13 +347,9 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
     assert result.exit_code == 1
     expected = (
         "Error: Invalid YAML: while parsing a flow sequence\n"
-        '  in "<unicode string>", line 1, column 4:\n'
-        "    a: [1\n"
-        "       ^ (line: 1)\n"
-        "expected ',' or ']', but got '<stream end>'\n"
-        '  in "<unicode string>", line 2, column 1:\n'
-        "    \n"
-        "    ^ (line: 2)\n"
+        '  in "<unicode string>", line 1, column 4\n'
+        "did not find expected ',' or ']'\n"
+        '  in "<unicode string>", line 2, column 1\n'
     )
     assert result.output == expected
 
@@ -351,13 +399,9 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
             language=Python(),
             expected=(
                 "Invalid YAML: while parsing a flow sequence\n"
-                '  in "<unicode string>", line 1, column 4:\n'
-                "    a: [1\n"
-                "       ^ (line: 1)\n"
-                "expected ',' or ']', but got '<stream end>'\n"
-                '  in "<unicode string>", line 2, column 1:\n'
-                "    \n"
-                "    ^ (line: 2)"
+                '  in "<unicode string>", line 1, column 4\n'
+                "did not find expected ',' or ']'\n"
+                '  in "<unicode string>", line 2, column 1'
             ),
         ),
     ],
@@ -382,6 +426,7 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
             include_delimiters=True,
             variable_form=case.variable_form,
             wrap_in_file=False,
+            ref_case=None,
         )
 
     assert exc_info.value.message == case.expected
