@@ -751,6 +751,28 @@ def test_call_style_curried_haskell() -> None:
     assert result.output.rstrip().endswith("process (1) (2)")
 
 
+def test_call_style_unsupported_for_language() -> None:
+    """--call-style rejects languages whose constructor lacks the option."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "yaml",
+            "-f",
+            "json",
+            "--call-style",
+            "positional",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    expected_usage_error_exit_code = 2
+    assert result.exit_code == expected_usage_error_exit_code
+    assert "--call-style is not supported for language 'yaml'" in result.output
+
+
 def test_module_name() -> None:
     """--module-name controls the wrap-in-file scope name."""
     runner = CliRunner()
