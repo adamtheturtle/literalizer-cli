@@ -63,8 +63,11 @@ _OPTION_TO_ENUM: dict[str, Callable[[LanguageCls], type[enum.Enum]]] = {
     "string_format": lambda cls: cls.StringFormats,
     "trailing_comma": lambda cls: cls.TrailingCommas,
     "empty_dict_key": lambda cls: cls.EmptyDictKey,
-    "line_ending": lambda cls: cls.LineEndings,
+    "statement_terminator_style": lambda cls: cls.StatementTerminatorStyles,
     "heterogeneous_strategy": lambda cls: cls.HeterogeneousStrategies,
+    "call_style": lambda cls: cls.CallStyles,
+    "numeric_style": lambda cls: cls.NumericStyles,
+    "language_version": lambda cls: cls.VersionFormats,
 }
 
 
@@ -77,10 +80,45 @@ def _get_enum_for_option(
     return _OPTION_TO_ENUM[option_name](lang_cls)
 
 
+# Constructor options that only some languages accept.  For each, a
+# getter reads the ``supports_*`` flag that ``literalizer`` exposes on
+# :class:`LanguageCls`.  Options not in this map are accepted by every
+# language and need no support probe.
+_OPTION_SUPPORT_FLAG: dict[str, Callable[[LanguageCls], bool]] = {
+    "module_name": lambda cls: cls.supports_module_name,
+    "empty_dict_key": lambda cls: cls.supports_empty_dict_key,
+    "call_style": lambda cls: cls.supports_call_style,
+    "default_dict_key_type": (lambda cls: cls.supports_default_dict_key_type),
+    "default_dict_value_type": (
+        lambda cls: cls.supports_default_dict_value_type
+    ),
+    "default_sequence_element_type": (
+        lambda cls: cls.supports_default_sequence_element_type
+    ),
+    "default_set_element_type": (
+        lambda cls: cls.supports_default_set_element_type
+    ),
+    "default_ordered_map_value_type": (
+        lambda cls: cls.supports_default_ordered_map_value_type
+    ),
+}
+
+
+def _language_accepts_param(*, lang_cls: LanguageCls, name: str) -> bool:
+    """Return whether the language's constructor accepts ``name``."""
+    getter = _OPTION_SUPPORT_FLAG.get(name)
+    return getter is None or getter(lang_cls)
+
+
 def _all_choices_for_option(option_name: str) -> list[str]:
     """Collect all valid enum member names for an option."""
     members: set[str] = set()
     for lang_cls in ALL_LANGUAGES:
+        if not _language_accepts_param(
+            lang_cls=lang_cls,
+            name=option_name,
+        ):
+            continue
         enum_cls = _get_enum_for_option(
             lang_cls=lang_cls,
             option_name=option_name,
@@ -165,13 +203,25 @@ _EMPTY_DICT_KEY_HELP = _choices_help(
     label="Empty dict key handling",
     option_name="empty_dict_key",
 )
-_LINE_ENDING_HELP = _choices_help(
-    label="Line ending style",
-    option_name="line_ending",
+_STATEMENT_TERMINATOR_STYLE_HELP = _choices_help(
+    label="Statement terminator style",
+    option_name="statement_terminator_style",
 )
 _HETEROGENEOUS_STRATEGY_HELP = _choices_help(
     label="Heterogeneous-collection strategy",
     option_name="heterogeneous_strategy",
+)
+_CALL_STYLE_HELP = _choices_help(
+    label="Call style",
+    option_name="call_style",
+)
+_NUMERIC_STYLE_HELP = _choices_help(
+    label="Numeric style",
+    option_name="numeric_style",
+)
+_LANGUAGE_VERSION_HELP = _choices_help(
+    label="Target language version",
+    option_name="language_version",
 )
 
 
@@ -221,25 +271,17 @@ def _resolve_modifiers(
 
 
 # Language options that take a free-form string rather than an enum.
-# Maps CLI option name to a getter for the ``supports_*`` flag.
-_STRING_OPTIONS: dict[
-    str,
-    Callable[[LanguageCls], bool],
-] = {
-    "default_dict_key_type": (lambda cls: cls.supports_default_dict_key_type),
-    "default_dict_value_type": (
-        lambda cls: cls.supports_default_dict_value_type
-    ),
-    "default_sequence_element_type": (
-        lambda cls: cls.supports_default_sequence_element_type
-    ),
-    "default_set_element_type": (
-        lambda cls: cls.supports_default_set_element_type
-    ),
-    "default_ordered_map_value_type": (
-        lambda cls: cls.supports_default_ordered_map_value_type
-    ),
-}
+# Each is supported only by languages whose constructor accepts it.
+_STRING_OPTIONS: frozenset[str] = frozenset(
+    {
+        "default_dict_key_type",
+        "default_dict_value_type",
+        "default_sequence_element_type",
+        "default_set_element_type",
+        "default_ordered_map_value_type",
+        "module_name",
+    },
+)
 
 
 def _resolve_language_option(
@@ -273,6 +315,7 @@ _LITERALIZER_EXCEPTIONS = (
     literalizer.exceptions.TOMLParseError,
     literalizer.exceptions.InvalidDictKeyError,
     literalizer.exceptions.HeterogeneousCollectionError,
+    literalizer.exceptions.HeterogeneousScalarCollectionError,
     literalizer.exceptions.NullInCollectionError,
     literalizer.exceptions.PerElementNotListError,
     literalizer.exceptions.ParameterCountMismatchError,
@@ -280,7 +323,16 @@ _LITERALIZER_EXCEPTIONS = (
     literalizer.exceptions.CallsNotSupportedByToolError,
     literalizer.exceptions.IncompatibleFormatsError,
     literalizer.exceptions.UnrepresentableIntegerError,
+    literalizer.exceptions.UnrepresentableSpecialFloatError,
     literalizer.exceptions.UnsupportedIdentifierCaseError,
+    literalizer.exceptions.UnsupportedCallShapeError,
+    literalizer.exceptions.VariableNameNotSupportedError,
+    literalizer.exceptions.WrapInFileWithoutVariableNotSupportedError,
+    literalizer.exceptions.WrapCombinedInFileNotSupportedError,
+    literalizer.exceptions.DottedCallTargetNotSupportedError,
+    literalizer.exceptions.DottedCallStubNotSupportedError,
+    literalizer.exceptions.FreeFunctionCallNotSupportedError,
+    literalizer.exceptions.CallArgNotSupportedError,
 )
 
 
@@ -294,6 +346,7 @@ def literalize_input(
     variable_form: VariableForm | None,
     wrap_in_file: bool,
     ref_case: IdentifierCase | None,
+    ref_key: str,
 ) -> LiteralizeResult:
     """Literalize input and surface literalizer errors as CLI errors."""
     try:
@@ -306,6 +359,7 @@ def literalize_input(
             variable_form=variable_form,
             wrap_in_file=wrap_in_file,
             ref_case=ref_case,
+            ref_key=ref_key,
         )
     except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
@@ -321,6 +375,7 @@ def literalize_call_input(
     per_element: bool,
     wrap_in_file: bool,
     ref_case: IdentifierCase | None,
+    ref_key: str,
 ) -> LiteralizeResult:
     """Literalize input as function calls, surfacing errors as CLI errors."""
     try:
@@ -333,6 +388,7 @@ def literalize_call_input(
             per_element=per_element,
             wrap_in_file=wrap_in_file,
             ref_case=ref_case,
+            ref_key=ref_key,
         )
     except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
@@ -477,14 +533,38 @@ def literalize_call_input(
     help=_EMPTY_DICT_KEY_HELP,
 )
 @click.option(
-    "--line-ending",
+    "--statement-terminator-style",
     default=None,
-    help=_LINE_ENDING_HELP,
+    help=_STATEMENT_TERMINATOR_STYLE_HELP,
 )
 @click.option(
     "--heterogeneous-strategy",
     default=None,
     help=_HETEROGENEOUS_STRATEGY_HELP,
+)
+@click.option(
+    "--call-style",
+    default=None,
+    help=_CALL_STYLE_HELP,
+)
+@click.option(
+    "--numeric-style",
+    default=None,
+    help=_NUMERIC_STYLE_HELP,
+)
+@click.option(
+    "--language-version",
+    default=None,
+    help=_LANGUAGE_VERSION_HELP,
+)
+@click.option(
+    "--module-name",
+    default=None,
+    help=(
+        "Module/namespace name for languages whose wrap-in-file form"
+        " introduces a named scope (e.g. C, C++, D, Erlang, Fortran, F#,"
+        " Java, Objective-C, Occam, SystemVerilog)."
+    ),
 )
 @click.option(
     "--default-dict-key-type",
@@ -559,6 +639,16 @@ def literalize_call_input(
         "as nested dicts."
     ),
 )
+@click.option(
+    "--ref-key",
+    default="$ref",
+    show_default=True,
+    help=(
+        "Marker key used to identify variable-reference mappings in the "
+        "input data. A single-key dict whose key equals --ref-key and whose "
+        "value is a string is treated as a ref marker."
+    ),
+)
 def main(
     *,
     language: str,
@@ -587,8 +677,12 @@ def main(
     string_format: str | None,
     trailing_comma: str | None,
     empty_dict_key: str | None,
-    line_ending: str | None,
+    statement_terminator_style: str | None,
     heterogeneous_strategy: str | None,
+    call_style: str | None,
+    numeric_style: str | None,
+    language_version: str | None,
+    module_name: str | None,
     default_dict_key_type: str | None,
     default_dict_value_type: str | None,
     default_sequence_element_type: str | None,
@@ -600,6 +694,7 @@ def main(
     call_params: str | None,
     per_element: bool,
     ref_case: str | None,
+    ref_key: str,
 ) -> None:
     """Convert data structures to native language literal syntax."""
     input_string = sys.stdin.read()
@@ -624,11 +719,25 @@ def main(
         "string_format": string_format,
         "trailing_comma": trailing_comma,
         "empty_dict_key": empty_dict_key,
-        "line_ending": line_ending,
+        "statement_terminator_style": statement_terminator_style,
         "heterogeneous_strategy": heterogeneous_strategy,
+        "call_style": call_style,
+        "numeric_style": numeric_style,
+        "language_version": language_version,
     }
     for option_name, value in cli_language_options.items():
         if value is not None:
+            if not _language_accepts_param(
+                lang_cls=lang_cls,
+                name=option_name,
+            ):
+                lang_name = lang_cls.__name__.lower()
+                raise click.UsageError(
+                    message=(
+                        f"--{option_name.replace('_', '-')} is not "
+                        f"supported for language '{lang_name}'."
+                    ),
+                )
             lang_kwargs[option_name] = _resolve_language_option(
                 lang_cls=lang_cls,
                 option_name=option_name,
@@ -641,10 +750,13 @@ def main(
         "default_sequence_element_type": default_sequence_element_type,
         "default_set_element_type": default_set_element_type,
         "default_ordered_map_value_type": default_ordered_map_value_type,
+        "module_name": module_name,
     }
     for option_name, value in cli_string_options.items():
         if value is not None:
-            if not _STRING_OPTIONS[option_name](lang_cls):
+            if option_name not in _STRING_OPTIONS or not (
+                _language_accepts_param(lang_cls=lang_cls, name=option_name)
+            ):
                 lang_name = lang_cls.__name__.lower()
                 raise click.UsageError(
                     message=(
@@ -706,6 +818,7 @@ def main(
             per_element=per_element,
             wrap_in_file=wrap_in_file,
             ref_case=resolved_ref_case,
+            ref_key=ref_key,
         )
     else:
         result = literalize_input(
@@ -717,6 +830,7 @@ def main(
             variable_form=variable_form,
             wrap_in_file=wrap_in_file,
             ref_case=resolved_ref_case,
+            ref_key=ref_key,
         )
     if include_preamble:
         for preamble_line in result.preamble:

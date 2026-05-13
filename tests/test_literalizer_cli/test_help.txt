@@ -48,7 +48,7 @@ Options:
                                   paren_star, percent, semicolon, slash,
                                   star_angle.
   --variable-type-hints TEXT      Variable type hints (language-specific).
-                                  Choices: always, auto.
+                                  Choices: always, never, safe.
   --declaration-style TEXT        Declaration style (language-specific).
                                   Choices: assign, auto, block, colon, const,
                                   declare, def, define, defparameter, dim,
@@ -76,13 +76,32 @@ Options:
   --trailing-comma TEXT           Trailing comma (language-specific). Choices:
                                   no, yes.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
-                                  Choices: allow, error, positional.
-  --line-ending TEXT              Line ending style (language-specific).
-                                  Choices: newline, none, semicolon.
+                                  Choices: error, positional.
+  --statement-terminator-style TEXT
+                                  Statement terminator style (language-
+                                  specific). Choices: newline, none, semicolon.
   --heterogeneous-strategy TEXT   Heterogeneous-collection strategy (language-
                                   specific). Choices: error, interface,
                                   object_variant, tagged_enum, union_type,
                                   variant.
+  --call-style TEXT               Call style (language-specific). Choices:
+                                  command, curried, keyword, named, object,
+                                  positional, prefix, prefix_keyword.
+  --numeric-style TEXT            Numeric style (language-specific). Choices:
+                                  explicit, overloaded.
+  --language-version TEXT         Target language version (language-specific).
+                                  Choices: ada_2022, ans, ansi, c99, cpp20,
+                                  dev_2024, dotnet_6, edition_2021, es2015,
+                                  haskell_2010, ieee_1800_2017, jdk_11, otp_25,
+                                  py_3_12, r2022a, r7rs, sml_97, v0, v0_12,
+                                  v0_14, v0_15, v0_19, v0_20, v0_4, v1, v10,
+                                  v17, v1_11, v1_14, v1_18, v1_2, v1_9, v2,
+                                  v2002, v2003, v24_5, v3, v4, v5, v5_1, v5_36,
+                                  v5_4, v5_9, v6, v6d, v7, v8, v8_1, v8_6.
+  --module-name TEXT              Module/namespace name for languages whose
+                                  wrap-in-file form introduces a named scope
+                                  (e.g. C, C++, D, Erlang, Fortran, F#, Java,
+                                  Objective-C, Occam, SystemVerilog).
   --default-dict-key-type TEXT    Default type for dict keys (language-specific,
                                   free-form string).
   --default-dict-value-type TEXT  Default type for dict values (language-
@@ -113,4 +132,9 @@ Options:
                                   "name"}`` are emitted as bare identifiers re-
                                   cased to the chosen convention instead of as
                                   nested dicts.
+  --ref-key TEXT                  Marker key used to identify variable-reference
+                                  mappings in the input data. A single-key dict
+                                  whose key equals --ref-key and whose value is
+                                  a string is treated as a ref marker.
+                                  [default: $ref]
   --help                          Show this message and exit.

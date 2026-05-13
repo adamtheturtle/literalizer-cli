@@ -4,6 +4,47 @@ Changelog
 Next
 ----
 
+2026.05.13
+----------
+
+- Bump ``literalizer`` to 2026.5.13.1.  The new release re-exposes the
+  ``supports_*`` class attributes for ``empty_dict_key``, ``call_style``,
+  and the five ``default_*_type`` options, restoring a type-safe probe
+  for runtime-dispatched constructor kwargs (cf. upstream issue
+  #2147).
+- Replace ``--line-ending`` with ``--statement-terminator-style``.  The
+  upstream ``LineEndings`` enum was removed; ``StatementTerminatorStyles``
+  (``semicolon``, ``none``) is its successor.
+- Add ``--call-style`` for picking between per-language call shapes
+  (e.g. ``curried`` for Haskell / OCaml / F# / SML / Elm, ``named`` for
+  Visual Basic).
+- Add ``--numeric-style`` for languages that support multiple numeric
+  rendering styles (e.g. ``overloaded`` vs. ``explicit``).
+- Add ``--language-version`` for selecting the target language version
+  (each language exposes a ``VersionFormats`` enum).
+- Add ``--module-name`` for languages whose ``--wrap-in-file`` form
+  introduces a named scope (C, C++, D, Erlang, Fortran, F#, Java,
+  Objective-C, Occam, SystemVerilog).  Previously a ``module_name``
+  argument to ``literalize`` itself, now a per-language constructor
+  argument.
+- Add ``--ref-key`` for picking a marker key other than ``$ref`` for
+  variable-reference mappings in the input data.
+- Surface the new typed ``literalizer`` exceptions as clean CLI errors
+  rather than tracebacks: ``UnsupportedCallShapeError``,
+  ``VariableNameNotSupportedError``,
+  ``WrapInFileWithoutVariableNotSupportedError``,
+  ``WrapCombinedInFileNotSupportedError``,
+  ``DottedCallTargetNotSupportedError``,
+  ``DottedCallStubNotSupportedError``,
+  ``FreeFunctionCallNotSupportedError``,
+  ``CallArgNotSupportedError``,
+  ``HeterogeneousScalarCollectionError``,
+  ``UnrepresentableSpecialFloatError``.
+- ``--variable-type-hints auto`` is now ``--variable-type-hints never``
+  (upstream rename), with a new ``safe`` option that annotates only
+  when the language's own inference would widen the variable to a
+  permissive type (e.g. ``unknown[]`` for an empty TypeScript array).
+
 2026.04.30
 ----------
 

@@ -121,11 +121,11 @@ def test_ref_case_unsupported_for_language() -> None:
         cli=main,
         args=[
             "--language",
-            "python",
+            "bash",
             "--input-format",
             "json",
             "--ref-case",
-            "camel",
+            "kebab",
         ],
         input='{"a": {"$ref": "userId"}}\n',
         catch_exceptions=False,
@@ -134,7 +134,7 @@ def test_ref_case_unsupported_for_language() -> None:
     assert result.exit_code == 1
     assert (
         result.output
-        == "Error: Python does not support identifier case 'CAMEL'\n"
+        == "Error: Bash does not support identifier case 'KEBAB'\n"
     )
 
 
@@ -319,6 +319,78 @@ def test_heterogeneous_collection_error() -> None:
     assert result.output == expected
 
 
+def test_wrap_in_file_without_variable_unsupported() -> None:
+    """Strict-typed langs reject ``--wrap-in-file`` without a variable."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "rust",
+            "-f",
+            "json",
+            "--wrap-in-file",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    expected = (
+        "Error: Rust cannot wrap a bare value"
+        " (without a variable_form) at file scope\n"
+    )
+    assert result.output == expected
+
+
+def test_variable_name_unsupported_for_language() -> None:
+    """Data-format languages reject ``--variable-name``."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "yaml",
+            "-f",
+            "json",
+            "--variable-name",
+            "data",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    expected = "Error: Yaml does not support variable names: 'data'\n"
+    assert result.output == expected
+
+
+def test_dotted_call_target_unsupported_for_language() -> None:
+    """HCL rejects dotted ``--call-function`` targets."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "hcl",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "a.b",
+            "--call-params",
+            "x",
+        ],
+        input="[[1]]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    expected = "Error: Hcl does not support dotted call targets: 'a.b'\n"
+    assert result.output == expected
+
+
 def test_invalid_json_is_shown_cleanly() -> None:
     """JSON parse failures are shown as CLI errors."""
     runner = CliRunner()
@@ -427,6 +499,7 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
             variable_form=case.variable_form,
             wrap_in_file=False,
             ref_case=None,
+            ref_key="$ref",
         )
 
     assert exc_info.value.message == case.expected
@@ -626,8 +699,8 @@ def test_sequence_format_case_insensitive() -> None:
     assert result.output == expected
 
 
-def test_line_ending() -> None:
-    """--line-ending changes the line ending style."""
+def test_statement_terminator_style() -> None:
+    """--statement-terminator-style controls trailing terminator emission."""
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -638,7 +711,7 @@ def test_line_ending() -> None:
             "json",
             "--variable-name",
             "data",
-            "--line-ending",
+            "--statement-terminator-style",
             "none",
         ],
         input='{"a": 1}\n',
@@ -646,8 +719,164 @@ def test_line_ending() -> None:
         color=True,
     )
     assert result.exit_code == 0
-    # With line_ending=none, JavaScript should omit the trailing semicolon.
+    # With statement_terminator_style=none, JavaScript omits the
+    # trailing semicolon.
     assert ";" not in result.output
+
+
+def test_call_style_curried_haskell() -> None:
+    """--call-style curried emits curried Haskell applications."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "haskell",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "process",
+            "--call-params",
+            "x,y",
+            "--call-style",
+            "curried",
+        ],
+        input="[[1, 2]]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert result.output.rstrip().endswith("process (1) (2)")
+
+
+def test_call_style_unsupported_for_language() -> None:
+    """--call-style rejects languages whose constructor lacks the option."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "yaml",
+            "-f",
+            "json",
+            "--call-style",
+            "positional",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    expected_usage_error_exit_code = 2
+    assert result.exit_code == expected_usage_error_exit_code
+    assert "--call-style is not supported for language 'yaml'" in result.output
+
+
+def test_module_name() -> None:
+    """--module-name controls the wrap-in-file scope name."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "java",
+            "-f",
+            "json",
+            "--wrap-in-file",
+            "--module-name",
+            "MyMod",
+            "--variable-name",
+            "data",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert "class MyMod {" in result.output
+
+
+def test_module_name_unsupported_for_language() -> None:
+    """--module-name rejects languages whose wrapper has no named scope."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--module-name",
+            "MyMod",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    expected_usage_error_exit_code = 2
+    assert result.exit_code == expected_usage_error_exit_code
+    assert (
+        "--module-name is not supported for language 'python'" in result.output
+    )
+
+
+def test_language_version() -> None:
+    """--language-version selects a target version for the language."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--language-version",
+            "py_3_12",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    expected = textwrap.dedent(
+        text="""\
+        {
+            "a": 1,
+        }
+    """
+    )
+    assert result.output == expected
+
+
+def test_ref_key() -> None:
+    """--ref-key selects a different marker key for $ref-style entries."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--ref-key",
+            "_ref",
+            "--ref-case",
+            "snake",
+        ],
+        input='{"a": {"_ref": "user_id"}}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    expected = textwrap.dedent(
+        text="""\
+        {
+            "a": user_id,
+        }
+    """
+    )
+    assert result.output == expected
 
 
 def test_default_dict_key_type() -> None:
@@ -1332,7 +1561,7 @@ def test_call_mode_not_implemented_for_language() -> None:
         cli=main,
         args=[
             "-l",
-            "cobol",
+            "nix",
             "-f",
             "json",
             "--mode",
@@ -1348,8 +1577,7 @@ def test_call_mode_not_implemented_for_language() -> None:
     )
     assert result.exit_code == 1
     expected = (
-        "Error: literalizer does not support "
-        "function call rendering for Cobol\n"
+        "Error: literalizer does not support function call rendering for Nix\n"
     )
     assert result.output == expected
 
