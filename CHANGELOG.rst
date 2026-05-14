@@ -4,6 +4,18 @@ Changelog
 Next
 ----
 
+2026.05.14.1
+------------
+
+- Bump ``literalizer`` to 2026.5.14.1.
+- YAML inputs with non-string dict keys (integers, dates, booleans)
+  now flow through to the target language's value-formatting path
+  instead of being silently stringified.  Languages that can represent
+  the key natively (Python, Ruby, Clojure, Lua, Bash, and others)
+  produce the corresponding literal; languages whose dict syntax
+  requires string keys or a homogeneous typed map surface the new
+  upstream ``UnrepresentableInputError`` as a clean CLI error.
+
 2026.05.14
 ----------
 

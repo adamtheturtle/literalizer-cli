@@ -8,7 +8,7 @@ import pytest
 from click import ClickException
 from click.testing import CliRunner
 from literalizer import ExistingVariable, InputFormat, NewVariable
-from literalizer.languages import Java, Python, R, Rust
+from literalizer.languages import Go, Java, Python, R, Rust
 from pytest_regressions.file_regression import FileRegressionFixture
 
 import literalizer_cli
@@ -59,6 +59,28 @@ def test_literalize_json_to_python() -> None:
         {
             "a": 1,
             "b": (2, 3),
+        }
+    """
+    )
+    assert result.output == expected
+
+
+def test_literalize_yaml_non_string_dict_keys() -> None:
+    """YAML non-string dict keys flow through to the target language."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--language", "python", "--input-format", "yaml"],
+        input="1: a\n2: b\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    expected = textwrap.dedent(
+        text="""\
+        {
+            1: "a",
+            2: "b",
         }
     """
     )
@@ -476,6 +498,12 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
                 '  in "<unicode string>", line 2, column 1'
             ),
         ),
+        ExceptionCase(
+            input_format=InputFormat.YAML,
+            input_string="1: a\n2: b\n",
+            language=Go(),
+            expected="Go cannot represent dict key of type int",
+        ),
     ],
     ids=(
         "empty_dict_key",
@@ -483,6 +511,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
         "null_in_collection",
         "json_parse",
         "yaml_parse",
+        "unrepresentable_non_string_dict_key",
     ),
 )
 def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
