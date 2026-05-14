@@ -376,6 +376,7 @@ def literalize_call_input(
     wrap_in_file: bool,
     ref_case: IdentifierCase | None,
     ref_key: str,
+    variable_form: VariableForm | None,
 ) -> LiteralizeResult:
     """Literalize input as function calls, surfacing errors as CLI errors."""
     try:
@@ -389,6 +390,7 @@ def literalize_call_input(
             wrap_in_file=wrap_in_file,
             ref_case=ref_case,
             ref_key=ref_key,
+            variable_form=variable_form,
         )
     except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
@@ -819,6 +821,7 @@ def main(
             wrap_in_file=wrap_in_file,
             ref_case=resolved_ref_case,
             ref_key=ref_key,
+            variable_form=variable_form,
         )
     else:
         result = literalize_input(

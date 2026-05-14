@@ -4,6 +4,25 @@ Changelog
 Next
 ----
 
+2026.05.14
+----------
+
+- Bump ``literalizer`` to 2026.5.14.
+- ``--variable-name`` (with ``--new-variable`` / ``--no-new-variable``
+  and ``--modifier``) now applies in ``--mode call`` as well, wrapping
+  the rendered call in the language's idiomatic per-language variable
+  binding (e.g. ``let user = createUser(...)``,
+  ``const user = createUser(...)``,
+  ``user = create_user(...)``).  Mutability and inference are picked
+  up from ``--declaration-style`` and ``--modifier`` exactly as in
+  literal mode.  Languages whose declaration template wraps or
+  transforms the right-hand side in a way only valid for literal
+  values (e.g. Bash command substitution, Objective-C boxing,
+  tagged-enum heterogeneous-strategy languages) surface the upstream
+  ``UnsupportedCallShapeError`` as a clean CLI error, as does the
+  combination with ``--per-element`` (which has no per-element name
+  vector).
+
 2026.05.13
 ----------
 
