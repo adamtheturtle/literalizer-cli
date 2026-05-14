@@ -1418,6 +1418,97 @@ def test_call_mode_javascript() -> None:
     assert "createUser(" in result.output
 
 
+def test_call_mode_variable_name_new_variable() -> None:
+    """``--variable-name`` in call mode wraps the call in a declaration."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "javascript",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "createUser",
+            "--call-params",
+            "name",
+            "--no-per-element",
+            "--variable-name",
+            "user",
+        ],
+        input='{"name": "alice"}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, result.output
+    expected = 'const user = createUser({ name: {"name": "alice"} });\n'
+    assert result.output == expected
+
+
+def test_call_mode_variable_name_existing_variable() -> None:
+    """``--no-new-variable`` in call mode emits a bare assignment."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "create_user",
+            "--call-params",
+            "name",
+            "--no-per-element",
+            "--variable-name",
+            "user",
+            "--no-new-variable",
+        ],
+        input='{"name": "alice"}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output == 'user = create_user(name={"name": "alice"})\n'
+
+
+def test_call_mode_variable_name_unsupported_shape() -> None:
+    """Languages that cannot wrap a call in a binding raise a clean error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "bash",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "create_user",
+            "--call-params",
+            "name",
+            "--no-per-element",
+            "--variable-name",
+            "user",
+        ],
+        input='{"name": "alice"}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert result.output == (
+        "Error: Bash cannot represent this call shape: this language's "
+        "variable-declaration template wraps or transforms the right-hand "
+        "side in a way that is only valid for literal values, not call "
+        "expressions\n"
+    )
+
+
 def test_call_mode_invalid_json() -> None:
     """Call mode surfaces JSON parse errors as CLI errors."""
     runner = CliRunner()
