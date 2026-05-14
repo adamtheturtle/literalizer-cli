@@ -322,6 +322,7 @@ _LITERALIZER_EXCEPTIONS = (
     literalizer.exceptions.CallsNotSupportedByLanguageError,
     literalizer.exceptions.CallsNotSupportedByToolError,
     literalizer.exceptions.IncompatibleFormatsError,
+    literalizer.exceptions.UnrepresentableInputError,
     literalizer.exceptions.UnrepresentableIntegerError,
     literalizer.exceptions.UnrepresentableSpecialFloatError,
     literalizer.exceptions.UnsupportedIdentifierCaseError,
