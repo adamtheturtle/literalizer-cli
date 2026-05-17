@@ -101,6 +101,9 @@ _OPTION_SUPPORT_FLAG: dict[str, Callable[[LanguageCls], bool]] = {
     "default_ordered_map_value_type": (
         lambda cls: cls.supports_default_ordered_map_value_type
     ),
+    "record_struct_name_prefix": (
+        lambda cls: cls.supports_record_struct_name_prefix
+    ),
 }
 
 
@@ -280,6 +283,7 @@ _STRING_OPTIONS: frozenset[str] = frozenset(
         "default_set_element_type",
         "default_ordered_map_value_type",
         "module_name",
+        "record_struct_name_prefix",
     },
 )
 
@@ -316,6 +320,7 @@ _LITERALIZER_EXCEPTIONS = (
     literalizer.exceptions.InvalidDictKeyError,
     literalizer.exceptions.HeterogeneousCollectionError,
     literalizer.exceptions.HeterogeneousScalarCollectionError,
+    literalizer.exceptions.TupleArityNotRepresentableError,
     literalizer.exceptions.NullInCollectionError,
     literalizer.exceptions.PerElementNotListError,
     literalizer.exceptions.ParameterCountMismatchError,
@@ -331,8 +336,6 @@ _LITERALIZER_EXCEPTIONS = (
     literalizer.exceptions.WrapInFileWithoutVariableNotSupportedError,
     literalizer.exceptions.WrapCombinedInFileNotSupportedError,
     literalizer.exceptions.DottedCallTargetNotSupportedError,
-    literalizer.exceptions.DottedCallStubNotSupportedError,
-    literalizer.exceptions.FreeFunctionCallNotSupportedError,
     literalizer.exceptions.CallArgNotSupportedError,
 )
 
@@ -605,6 +608,16 @@ def literalize_call_input(
     ),
 )
 @click.option(
+    "--record-struct-name-prefix",
+    default=None,
+    help=(
+        "Name prefix for the structs/records generated under"
+        " --heterogeneous-strategy record (language-specific, free-form"
+        " string). Names must be valid PascalCase identifiers for the"
+        " target language."
+    ),
+)
+@click.option(
     "--include-preamble/--no-include-preamble",
     default=False,
     help="Include language preamble (e.g. package declarations, imports).",
@@ -691,6 +704,7 @@ def main(
     default_sequence_element_type: str | None,
     default_set_element_type: str | None,
     default_ordered_map_value_type: str | None,
+    record_struct_name_prefix: str | None,
     include_preamble: bool,
     mode: str,
     call_function: str | None,
@@ -754,6 +768,7 @@ def main(
         "default_set_element_type": default_set_element_type,
         "default_ordered_map_value_type": default_ordered_map_value_type,
         "module_name": module_name,
+        "record_struct_name_prefix": record_struct_name_prefix,
     }
     for option_name, value in cli_string_options.items():
         if value is not None:
@@ -769,7 +784,10 @@ def main(
                 )
             lang_kwargs[option_name] = value
 
-    lang_instance = lang_cls(indent=indent, **lang_kwargs)
+    try:
+        lang_instance = lang_cls(indent=indent, **lang_kwargs)
+    except literalizer.exceptions.InvalidRecordNameError as exc:
+        raise click.ClickException(message=str(object=exc)) from None
 
     variable_form: VariableForm | None = None
     if variable_name is not None:

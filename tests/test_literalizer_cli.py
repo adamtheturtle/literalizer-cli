@@ -861,7 +861,7 @@ def test_language_version() -> None:
             "-f",
             "json",
             "--language-version",
-            "py_3_12",
+            "py39",
         ],
         input='{"a": 1}\n',
         catch_exceptions=False,
@@ -1506,13 +1506,18 @@ def test_call_mode_variable_name_existing_variable() -> None:
 
 
 def test_call_mode_variable_name_unsupported_shape() -> None:
-    """Languages that cannot wrap a call in a binding raise a clean error."""
+    """An unsupported call/binding shape raises a clean error.
+
+    ``--variable-name`` with per-element calls has no per-element name
+    vector, so ``literalizer`` rejects the combination; the CLI surfaces
+    it as a clean error rather than a traceback.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
         args=[
             "-l",
-            "bash",
+            "python",
             "-f",
             "json",
             "--mode",
@@ -1521,20 +1526,19 @@ def test_call_mode_variable_name_unsupported_shape() -> None:
             "create_user",
             "--call-params",
             "name",
-            "--no-per-element",
+            "--per-element",
             "--variable-name",
             "user",
         ],
-        input='{"name": "alice"}\n',
+        input='[{"name": "alice"}, {"name": "bob"}]\n',
         catch_exceptions=False,
         color=True,
     )
     assert result.exit_code == 1
     assert result.output == (
-        "Error: Bash cannot represent this call shape: this language's "
-        "variable-declaration template wraps or transforms the right-hand "
-        "side in a way that is only valid for literal values, not call "
-        "expressions\n"
+        "Error: Python cannot represent this call shape: variable_form is "
+        "incompatible with per_element=True; the API does not provide a "
+        "name per element\n"
     )
 
 
@@ -1644,7 +1648,125 @@ def test_heterogeneous_strategy_invalid_for_language() -> None:
         "Try 'literalize --help' for help.\n"
         "\n"
         "Error: Invalid value 'tagged_enum' for "
-        "--heterogeneous-strategy. Valid choices: error.\n"
+        "--heterogeneous-strategy. Valid choices: error, record.\n"
+    )
+    assert result.output == expected
+
+
+def test_record_struct_name_prefix() -> None:
+    """--record-struct-name-prefix names the generated RECORD structs."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "rust",
+            "-f",
+            "json",
+            "--heterogeneous-strategy",
+            "record",
+            "--record-struct-name-prefix",
+            "Widget",
+            "--variable-name",
+            "data",
+            "--include-preamble",
+        ],
+        input='{"id": 1, "label": "x"}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, result.output
+    expected = (
+        "use std::collections::HashMap;\n"
+        "struct Widget0 {\n"
+        "    id: i32,\n"
+        "    label: &'static str,\n"
+        "}\n"
+        "let data = Widget0 {\n"
+        "    id: 1,\n"
+        '    label: "x",\n'
+        "};\n"
+    )
+    assert result.output == expected
+
+
+def test_record_struct_name_prefix_invalid() -> None:
+    """An invalid struct-name prefix surfaces as a clean CLI error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "rust",
+            "-f",
+            "json",
+            "--heterogeneous-strategy",
+            "record",
+            "--record-struct-name-prefix",
+            "bad-name",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    expected = (
+        "Error: record_struct_name_prefix 'bad-name' must be a PascalCase "
+        "identifier starting with an uppercase letter.\n"
+    )
+    assert result.output == expected
+
+
+def test_record_struct_name_prefix_unsupported_for_language() -> None:
+    """--record-struct-name-prefix rejects languages without the option."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "yaml",
+            "-f",
+            "json",
+            "--record-struct-name-prefix",
+            "Widget",
+        ],
+        input='{"a": 1}\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    expected_usage_error_exit_code = 2
+    assert result.exit_code == expected_usage_error_exit_code
+    expected = (
+        "Usage: literalize [OPTIONS]\n"
+        "Try 'literalize --help' for help.\n"
+        "\n"
+        "Error: --record-struct-name-prefix is not supported for "
+        "language 'yaml'.\n"
+    )
+    assert result.output == expected
+
+
+def test_tuple_arity_not_representable() -> None:
+    """A tuple arity with no native form surfaces as a clean CLI error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "kotlin",
+            "-f",
+            "json",
+            "--heterogeneous-strategy",
+            "tuple",
+        ],
+        input='[1, "a", true, 2, 3]\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    expected = (
+        "Error: a heterogeneous scalar array of 5 elements has no native "
+        "fixed-size tuple in the target language\n"
     )
     assert result.output == expected
 

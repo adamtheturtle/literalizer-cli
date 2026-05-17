@@ -555,7 +555,7 @@ wheels = [
 
 [[package]]
 name = "literalizer"
-version = "2026.5.14.1"
+version = "2026.5.17"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
@@ -566,9 +566,9 @@ dependencies = [
     { name = "tomlkit" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bb/a1/fa170c93be94154a1e686a4506f27b265f0738ced3e4ba9df720700310c0/literalizer-2026.5.14.1.tar.gz", hash = "sha256:0eaa0a28c13f50b43a606aba39e24300abffb434a78eb1bfb58803f5bcb0bf58", size = 2119815, upload-time = "2026-05-14T08:34:11.523Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bd/2f/eca4642d193c0de5daef2f61b3f239106936de68b09f6563f083286381a7/literalizer-2026.5.17.tar.gz", hash = "sha256:e2fd8bc64eb11f115c540378de278664cd66f4e8ad68799172a6dfba77f17ff5", size = 2775902, upload-time = "2026-05-17T12:14:52.669Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/51/fc60f6ea5d34039c4469621ca4a49c0b4c5c47a1951dcc3f658cefc90342/literalizer-2026.5.14.1-py3-none-any.whl", hash = "sha256:ab0456b5b19a6d45e75a6c32691c31beb50270c8c5b1c0dd60c2204c07455cda", size = 558379, upload-time = "2026-05-14T08:34:09.923Z" },
+    { url = "https://files.pythonhosted.org/packages/cd/4c/fcd3e385b8a6ee378b8cb0fad4bc986fe6b295793905eb61a6457dd6cb24/literalizer-2026.5.17-py3-none-any.whl", hash = "sha256:ab98ceeb0da2ff0c63e830fdb9e24a2207c88bbfdbfe7fdda14e4ba0b408f4e1", size = 677480, upload-time = "2026-05-17T12:14:50.362Z" },
 ]
 
 [[package]]
@@ -625,7 +625,7 @@ requires-dist = [
     { name = "deptry", marker = "extra == 'dev'", specifier = "==0.25.1" },
     { name = "furo", marker = "extra == 'dev'", specifier = "==2025.12.19" },
     { name = "homebrew-pypi-poet", marker = "extra == 'release'", specifier = "==0.10" },
-    { name = "literalizer", specifier = "==2026.5.14.1" },
+    { name = "literalizer", specifier = "==2026.5.17" },
     { name = "mypy", extras = ["faster-cache"], marker = "extra == 'dev'", specifier = "==2.1.0" },
     { name = "mypy-strict-kwargs", marker = "extra == 'dev'", specifier = "==2026.1.12" },
     { name = "prek", marker = "extra == 'dev'", specifier = "==0.4.0" },
@@ -1899,11 +1899,11 @@ wheels = [
 
 [[package]]
 name = "tomlkit"
-version = "0.14.0"
+version = "0.15.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c3/af/14b24e41977adb296d6bd1fb59402cf7d60ce364f90c890bd2ec65c43b5a/tomlkit-0.14.0.tar.gz", hash = "sha256:cf00efca415dbd57575befb1f6634c4f42d2d87dbba376128adb42c121b87064", size = 187167, upload-time = "2026-01-13T01:14:53.304Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/db/03eaf4331631ef6b27d6e3c9b68c54dc6f0d63d87201fed600cc409307fd/tomlkit-0.15.0.tar.gz", hash = "sha256:7d1a9ecba3086638211b13814ea79c90dd54dd11993564376f3aa92271f5c7a3", size = 161875, upload-time = "2026-05-10T07:38:22.245Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b5/11/87d6d29fb5d237229d67973a6c9e06e048f01cf4994dee194ab0ea841814/tomlkit-0.14.0-py3-none-any.whl", hash = "sha256:592064ed85b40fa213469f81ac584f67a4f2992509a7c3ea2d632208623a3680", size = 39310, upload-time = "2026-01-13T01:14:51.965Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/43/8bd850ee71a191bf072e31302c73a66be413fecdd98fdcd111ecbcce13ca/tomlkit-0.15.0-py3-none-any.whl", hash = "sha256:4dbc8f0fc024412b57ced8757ac7461305126a648ff8c2c807fcb8e133a78738", size = 41328, upload-time = "2026-05-10T07:38:23.517Z" },
 ]
 
 [[package]]
