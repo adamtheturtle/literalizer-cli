@@ -82,8 +82,8 @@ Options:
                                   specific). Choices: newline, none, semicolon.
   --heterogeneous-strategy TEXT   Heterogeneous-collection strategy (language-
                                   specific). Choices: error, interface,
-                                  object_variant, tagged_enum, union_type,
-                                  variant.
+                                  object_variant, record, tagged_enum, tuple,
+                                  union_type, variant.
   --call-style TEXT               Call style (language-specific). Choices:
                                   command, curried, keyword, named, object,
                                   positional, prefix, prefix_keyword.
@@ -92,12 +92,12 @@ Options:
   --language-version TEXT         Target language version (language-specific).
                                   Choices: ada_2022, ans, ansi, c99, cpp20,
                                   dev_2024, dotnet_6, edition_2021, es2015,
-                                  haskell_2010, ieee_1800_2017, jdk_11, otp_25,
-                                  py_3_12, r2022a, r7rs, sml_97, v0, v0_12,
-                                  v0_14, v0_15, v0_19, v0_20, v0_4, v1, v10,
-                                  v17, v1_11, v1_14, v1_18, v1_2, v1_9, v2,
-                                  v2002, v2003, v24_5, v3, v4, v5, v5_1, v5_36,
-                                  v5_4, v5_9, v6, v6d, v7, v8, v8_1, v8_6.
+                                  ghc2021, ieee_1800_2017, jdk_11, jdk_16,
+                                  otp_25, py38, py39, r2022a, r7rs, sml_97, v0,
+                                  v0_12, v0_14, v0_15, v0_19, v0_20, v0_4, v1,
+                                  v10, v17, v1_11, v1_14, v1_18, v1_2, v1_9, v2,
+                                  v2002, v2003, v2008, v24_5, v3, v4, v5, v5_1,
+                                  v5_36, v5_4, v5_9, v6d, v7, v8, v8_1, v8_6.
   --module-name TEXT              Module/namespace name for languages whose
                                   wrap-in-file form introduces a named scope
                                   (e.g. C, C++, D, Erlang, Fortran, F#, Java,
@@ -115,6 +115,12 @@ Options:
   --default-ordered-map-value-type TEXT
                                   Default type for ordered map values (language-
                                   specific, free-form string).
+  --record-struct-name-prefix TEXT
+                                  Name prefix for the structs/records generated
+                                  under --heterogeneous-strategy record
+                                  (language-specific, free-form string). Names
+                                  must be valid PascalCase identifiers for the
+                                  target language.
   --include-preamble / --no-include-preamble
                                   Include language preamble (e.g. package
                                   declarations, imports).

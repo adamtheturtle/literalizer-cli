@@ -4,6 +4,34 @@ Changelog
 Next
 ----
 
+- Bump ``literalizer`` to 2026.5.17.
+- Add ``--record-struct-name-prefix`` for naming the structs/records
+  that the ``record`` ``--heterogeneous-strategy`` generates (e.g.
+  ``Widget0``, ``Widget1`` instead of ``Record0``, ``Record1``).  The
+  ``record`` strategy is now available for many more languages in this
+  release (C, C#, C++, Crystal, D, Go, Java, Kotlin, Nim, Odin, Python,
+  Rust, Scala, Swift, V, Zig); the strategy and the new option are
+  surfaced automatically per language exactly like every other
+  language-specific option.
+- ``--heterogeneous-strategy tuple`` is now offered for the languages
+  that gained the upstream ``TUPLE`` strategy (C++, Kotlin, Rust,
+  Scala, TypeScript).  A tuple arity that has no native fixed-size
+  tuple in the target language (e.g. a 4+-element heterogeneous array
+  in Kotlin) now surfaces the new upstream
+  ``TupleArityNotRepresentableError`` as a clean CLI error rather than
+  a traceback.
+- An invalid ``--record-struct-name-prefix`` (not a PascalCase
+  identifier for the target language) now surfaces the upstream
+  ``InvalidRecordNameError`` as a clean CLI error rather than a
+  traceback.
+- ``literalizer`` removed ``DottedCallStubNotSupportedError`` and
+  ``FreeFunctionCallNotSupportedError`` (the context-aware
+  ``call_transform`` made them unreachable); they are no longer
+  referenced.  Languages whose declaration template previously only
+  wrapped literal values (Bash, Objective-C, Tcl, and others) now bind
+  a call result through their idiomatic call-binding form, so
+  ``--variable-name`` in ``--mode call`` works for them too.
+
 2026.05.14.1
 ------------
 
