@@ -33,7 +33,7 @@ dynamic = [
     "version",
 ]
 dependencies = [
-    "click>=8.3.0,<8.4.0",
+    "click>=8.3.0,<8.5.0",
     "literalizer==2026.5.17",
 ]
 optional-dependencies.dev = [
