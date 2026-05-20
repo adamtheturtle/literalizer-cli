@@ -137,7 +137,9 @@ def test_ref_case_emits_bare_identifiers() -> None:
 
 
 def test_ref_case_unsupported_for_language() -> None:
-    """An unsupported ref-case for the language exits with a clean error."""
+    """An unsupported ref-case for the language exits with a clean
+    error.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -729,7 +731,9 @@ def test_sequence_format_case_insensitive() -> None:
 
 
 def test_statement_terminator_style() -> None:
-    """--statement-terminator-style controls trailing terminator emission."""
+    """--statement-terminator-style controls trailing terminator
+    emission.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -781,7 +785,9 @@ def test_call_style_curried_haskell() -> None:
 
 
 def test_call_style_unsupported_for_language() -> None:
-    """--call-style rejects languages whose constructor lacks the option."""
+    """--call-style rejects languages whose constructor lacks the
+    option.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -827,7 +833,9 @@ def test_module_name() -> None:
 
 
 def test_module_name_unsupported_for_language() -> None:
-    """--module-name rejects languages whose wrapper has no named scope."""
+    """--module-name rejects languages whose wrapper has no named
+    scope.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -972,7 +980,9 @@ def test_default_sequence_element_type() -> None:
 
 
 def test_default_set_element_type() -> None:
-    """--default-set-element-type overrides the default set element type."""
+    """--default-set-element-type overrides the default set element
+    type.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -993,7 +1003,9 @@ def test_default_set_element_type() -> None:
 
 
 def test_default_type_unsupported_for_language() -> None:
-    """Error when a default type option is not supported for the language."""
+    """Error when a default type option is not supported for the
+    language.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -1213,7 +1225,9 @@ def test_modifier_unsupported_for_language() -> None:
 
 
 def test_modifier_invalid_value() -> None:
-    """Error when --modifier is given a value the language does not support."""
+    """Error when --modifier is given a value the language does not
+    support.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -1448,7 +1462,9 @@ def test_call_mode_javascript() -> None:
 
 
 def test_call_mode_variable_name_new_variable() -> None:
-    """``--variable-name`` in call mode wraps the call in a declaration."""
+    """``--variable-name`` in call mode wraps the call in a
+    declaration.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -1592,7 +1608,9 @@ def test_pre_indent_level_with_variable_name() -> None:
 
 
 def test_heterogeneous_strategy_rust_tagged_enum() -> None:
-    """--heterogeneous-strategy tagged_enum wraps Rust heterogeneous values."""
+    """--heterogeneous-strategy tagged_enum wraps Rust heterogeneous
+    values.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -1718,7 +1736,9 @@ def test_record_struct_name_prefix_invalid() -> None:
 
 
 def test_record_struct_name_prefix_unsupported_for_language() -> None:
-    """--record-struct-name-prefix rejects languages without the option."""
+    """--record-struct-name-prefix rejects languages without the
+    option.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -1797,7 +1817,9 @@ def test_call_mode_language_has_no_call_syntax() -> None:
 
 
 def test_call_mode_not_implemented_for_language() -> None:
-    """Languages without call rendering implemented raise a clean error."""
+    """Languages without call rendering implemented raise a clean
+    error.
+    """
     runner = CliRunner()
     result = runner.invoke(
         cli=main,

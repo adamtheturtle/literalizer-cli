@@ -1,4 +1,6 @@
-"""CLI for literalizer - convert data to native language literal syntax."""
+"""CLI for literalizer - convert data to native language literal
+syntax.
+"""
 
 import enum
 import sys
@@ -247,7 +249,9 @@ def _resolve_modifiers(
     lang_cls: LanguageCls,
     values: tuple[str, ...],
 ) -> frozenset[enum.Enum]:
-    """Resolve CLI modifier strings to the language's Modifiers members."""
+    """Resolve CLI modifier strings to the language's Modifiers
+    members.
+    """
     modifier_enum = lang_cls.Modifiers
     if not modifier_enum.__members__:
         lang_name = lang_cls.__name__.lower()
@@ -382,7 +386,9 @@ def literalize_call_input(
     ref_key: str,
     variable_form: VariableForm | None,
 ) -> LiteralizeResult:
-    """Literalize input as function calls, surfacing errors as CLI errors."""
+    """Literalize input as function calls, surfacing errors as CLI
+    errors.
+    """
     try:
         return literalize_call(
             source=input_string,
