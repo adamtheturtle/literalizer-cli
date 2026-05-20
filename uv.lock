@@ -622,7 +622,7 @@ wheels = [
 
 [[package]]
 name = "literalizer"
-version = "2026.5.17.1"
+version = "2026.5.20"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
@@ -633,9 +633,9 @@ dependencies = [
     { name = "tomlkit" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fa/25/106fc073ed2920cee751e66f4325da6dfa6b2464f9cc78decbc935d62135/literalizer-2026.5.17.1.tar.gz", hash = "sha256:22025b03be1e7bd4aa4e6b2b9271cc3cd7137cf97c99a655cf184e073e289aaf", size = 2830505, upload-time = "2026-05-17T16:17:17.101Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2c/e1/7d3f46a792966365ec6abeb2c438cb1d5916641ef1104072b765bb27136c/literalizer-2026.5.20.tar.gz", hash = "sha256:05e95431fdee9e31633ca5a87c06ba823278f0c8187cfdec69367c7d7852dd11", size = 2867699, upload-time = "2026-05-20T06:40:54.743Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/94/fb/6c9d60c36cb425a665235c61db9972c8336ddaaa6785ce4c341280f8fa19/literalizer-2026.5.17.1-py3-none-any.whl", hash = "sha256:98fe89107868a7d27462fdb0315ca646e993758842ec7bf69c9ede1655165ed8", size = 679691, upload-time = "2026-05-17T16:17:15.486Z" },
+    { url = "https://files.pythonhosted.org/packages/93/48/43445f74df16c24504236c9259523b618c5a35321aab8950737405c8d1f8/literalizer-2026.5.20-py3-none-any.whl", hash = "sha256:9f8a58e4ab4814b6f70bd423798306d6189f36a62be41dc7a2bd42701477f9af", size = 690237, upload-time = "2026-05-20T06:40:52.6Z" },
 ]
 
 [[package]]
@@ -707,7 +707,7 @@ requires-dist = [
     { name = "furo", marker = "extra == 'dev'", specifier = "==2025.12.19" },
     { name = "homebrew-pypi-poet", marker = "extra == 'release'", specifier = "==0.10" },
     { name = "interrogate", marker = "extra == 'dev'", specifier = "==1.7.0" },
-    { name = "literalizer", specifier = "==2026.5.17.1" },
+    { name = "literalizer", specifier = "==2026.5.20" },
     { name = "mypy", extras = ["faster-cache"], marker = "extra == 'dev'", specifier = "==2.1.0" },
     { name = "mypy-strict-kwargs", marker = "extra == 'dev'", specifier = "==2026.5.20.1" },
     { name = "prek", marker = "extra == 'dev'", specifier = "==0.4.1" },
