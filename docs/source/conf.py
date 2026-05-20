@@ -1,7 +1,5 @@
 """Configuration for Sphinx."""
 
-# pylint: disable=invalid-name
-
 import importlib.metadata
 from pathlib import Path
 

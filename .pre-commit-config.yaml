@@ -13,11 +13,16 @@ ci:
     - actionlint
     - check-manifest
     - deptry
+    - doc8
     - docs
+    - interrogate
     - mypy
+    - pydocstringformatter
+    - pylint
     - pyproject-fmt-fix
     - pyrefly
     - pyright
+    - pyroma
     - ruff-check-fix
     - ruff-format-fix
     - shellcheck
@@ -26,6 +31,7 @@ ci:
     - strict-kwargs-fix
     - ty
     - uv-lock
+    - vulture
     - yamlfix
     - zizmor
 
@@ -104,6 +110,15 @@ repos:
           - *uv_version
         stages: [pre-commit]
 
+      - id: pydocstringformatter
+        name: pydocstringformatter
+        entry: uv run --extra=dev pydocstringformatter
+        language: python
+        types_or: [python]
+        additional_dependencies:
+          - *uv_version
+        stages: [pre-commit]
+
       - id: mypy
         name: mypy
         stages: [pre-push]
@@ -142,6 +157,26 @@ repos:
           - *uv_version
         stages: [pre-commit]
 
+      - id: vulture
+        name: vulture
+        entry: uv run --extra=dev -m vulture .
+        language: python
+        types_or: [python]
+        pass_filenames: false
+        additional_dependencies:
+          - *uv_version
+        stages: [pre-commit]
+
+      - id: pyroma
+        name: pyroma
+        entry: uv run --extra=dev -m pyroma --min 10 .
+        language: python
+        pass_filenames: false
+        types_or: [toml]
+        additional_dependencies:
+          - *uv_version
+        stages: [pre-commit]
+
       - id: ruff-check-fix
         name: Ruff check fix
         entry: uv run --extra=dev -m ruff check --fix
@@ -160,6 +195,19 @@ repos:
           - *uv_version
         stages: [pre-commit]
 
+      - id: pylint
+        name: pylint
+        entry: uv run --extra=dev -m pylint src/ tests/ docs/
+        language: python
+        stages: [manual]
+        pass_filenames: false
+        additional_dependencies:
+          - *uv_version
+
+      # literalizer also runs doccmd-backed *-docs hooks. This repo does not
+      # use doccmd-generated examples, so docs coverage stays with Sphinx,
+      # sphinx-lint, doc8, and the generic RST hooks.
+
       - id: strict-kwargs-fix
         name: strict-kwargs
         entry: uv run --extra=dev strict-kwargs fix --diff
@@ -176,6 +224,24 @@ repos:
         language: python
         types_or: [toml]
         files: pyproject.toml
+        additional_dependencies:
+          - *uv_version
+        stages: [pre-commit]
+
+      - id: doc8
+        name: doc8
+        entry: uv run --extra=dev -m doc8
+        language: python
+        types_or: [rst]
+        additional_dependencies:
+          - *uv_version
+        stages: [pre-commit]
+
+      - id: interrogate
+        name: interrogate
+        entry: uv run --extra=dev -m interrogate
+        language: python
+        types_or: [python]
         additional_dependencies:
           - *uv_version
         stages: [pre-commit]

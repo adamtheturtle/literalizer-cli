@@ -1,5 +1,16 @@
+arity
 cli
+enum
+getter
+HCL
+langs
 literalize
 literalizer
 macOS
+params
+pragma
+Pre
+struct
+structs
+traceback
 winget
