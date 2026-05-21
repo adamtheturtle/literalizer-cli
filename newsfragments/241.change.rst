@@ -1,0 +1,2 @@
+Add manual Sphinx linkcheck and spelling pre-commit hooks to complete the lint
+tooling alignment with ``literalizer``.
