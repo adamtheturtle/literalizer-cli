@@ -1,8 +1,6 @@
 ---
 fail_fast: true
 
-.uv_version: &uv_version uv==0.11.7
-
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 
@@ -16,6 +14,7 @@ ci:
     - doc8
     - docs
     - interrogate
+    - linkcheck
     - mypy
     - pydocstringformatter
     - pylint
@@ -27,6 +26,7 @@ ci:
     - ruff-format-fix
     - shellcheck
     - shfmt
+    - spelling
     - sphinx-lint
     - strict-kwargs-fix
     - ty
@@ -88,8 +88,7 @@ repos:
         language: python
         pass_filenames: false
         types_or: [yaml]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [&uv_version uv==0.11.7]
         stages: [pre-commit]
 
       - id: shellcheck
@@ -97,8 +96,7 @@ repos:
         entry: uv run --extra=dev shellcheck --shell=bash
         language: python
         types_or: [shell]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: shfmt
@@ -106,8 +104,7 @@ repos:
         entry: uv run --extra=dev shfmt --write --space-redirects --indent=4
         language: python
         types_or: [shell]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: pydocstringformatter
@@ -115,8 +112,7 @@ repos:
         entry: uv run --extra=dev pydocstringformatter
         language: python
         types_or: [python]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: mypy
@@ -126,18 +122,14 @@ repos:
         language: python
         types_or: [python, toml]
         pass_filenames: false
-        additional_dependencies:
-          - *uv_version
-
+        additional_dependencies: [*uv_version]
       - id: check-manifest
         name: check-manifest
         stages: [pre-push]
         entry: uv run --extra=dev -m check_manifest
         language: python
         pass_filenames: false
-        additional_dependencies:
-          - *uv_version
-
+        additional_dependencies: [*uv_version]
       - id: pyright
         name: pyright
         stages: [pre-push]
@@ -145,16 +137,13 @@ repos:
         language: python
         types_or: [python, toml]
         pass_filenames: false
-        additional_dependencies:
-          - *uv_version
-
+        additional_dependencies: [*uv_version]
       - id: deptry
         name: deptry
         entry: uv run --extra=dev -m deptry src/
         language: python
         pass_filenames: false
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: vulture
@@ -163,8 +152,7 @@ repos:
         language: python
         types_or: [python]
         pass_filenames: false
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: pyroma
@@ -173,8 +161,7 @@ repos:
         language: python
         pass_filenames: false
         types_or: [toml]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: ruff-check-fix
@@ -182,8 +169,7 @@ repos:
         entry: uv run --extra=dev -m ruff check --fix
         language: python
         types_or: [python]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: ruff-format-fix
@@ -191,8 +177,7 @@ repos:
         entry: uv run --extra=dev -m ruff format
         language: python
         types_or: [python]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: pylint
@@ -201,20 +186,13 @@ repos:
         language: python
         stages: [manual]
         pass_filenames: false
-        additional_dependencies:
-          - *uv_version
-
-      # literalizer also runs doccmd-backed *-docs hooks. This repo does not
-      # use doccmd-generated examples, so docs coverage stays with Sphinx,
-      # sphinx-lint, doc8, and the generic RST hooks.
-
+        additional_dependencies: [*uv_version]
       - id: strict-kwargs-fix
         name: strict-kwargs
         entry: uv run --extra=dev strict-kwargs fix --diff
         language: python
         types_or: [python]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
         require_serial: true
 
@@ -224,8 +202,7 @@ repos:
         language: python
         types_or: [toml]
         files: pyproject.toml
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: doc8
@@ -233,17 +210,33 @@ repos:
         entry: uv run --extra=dev -m doc8
         language: python
         types_or: [rst]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
+      - id: linkcheck
+        name: linkcheck
+        entry: uv run --extra=dev sphinx-build -M linkcheck docs/source docs/build
+          -W -d docs/build/.doctrees-linkcheck
+        language: python
+        types_or: [rst]
+        stages: [manual]
+        pass_filenames: false
+        additional_dependencies: [*uv_version]
+      - id: spelling
+        name: spelling
+        entry: uv run --extra=dev sphinx-build -M spelling docs/source docs/build
+          -W -d docs/build/.doctrees-spelling
+        language: python
+        types_or: [rst]
+        stages: [manual]
+        pass_filenames: false
+        additional_dependencies: [*uv_version]
       - id: interrogate
         name: interrogate
         entry: uv run --extra=dev -m interrogate
         language: python
         types_or: [python]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: ty
@@ -253,9 +246,7 @@ repos:
         language: python
         types_or: [python, toml]
         pass_filenames: false
-        additional_dependencies:
-          - *uv_version
-
+        additional_dependencies: [*uv_version]
       - id: pyrefly
         name: pyrefly
         stages: [pre-push]
@@ -263,16 +254,13 @@ repos:
         language: python
         types_or: [python, toml]
         pass_filenames: false
-        additional_dependencies:
-          - *uv_version
-
+        additional_dependencies: [*uv_version]
       - id: yamlfix
         name: yamlfix
         entry: uv run --extra=dev yamlfix
         language: python
         types_or: [yaml]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: zizmor
@@ -281,8 +269,7 @@ repos:
         language: python
         pass_filenames: false
         types_or: [yaml]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: docs
@@ -291,17 +278,14 @@ repos:
         language: python
         stages: [manual]
         pass_filenames: false
-        additional_dependencies:
-          - *uv_version
-
+        additional_dependencies: [*uv_version]
       - id: sphinx-lint
         name: sphinx-lint
         entry: uv run --extra=dev sphinx-lint --enable=all --disable=line-too-long
           --ignore=docs/build
         language: python
         types_or: [rst]
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
 
       - id: uv-lock
@@ -310,6 +294,5 @@ repos:
         language: python
         pass_filenames: false
         files: (^pyproject\.toml$|^uv\.lock$)
-        additional_dependencies:
-          - *uv_version
+        additional_dependencies: [*uv_version]
         stages: [pre-commit]
