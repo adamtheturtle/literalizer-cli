@@ -26,7 +26,8 @@ fsharp
 ghc
 getter
 haskell
-HCL
+haxe
+Haxe
 hcl
 Homebrew
 ieee
@@ -89,6 +90,8 @@ tcl
 toml
 traceback
 tracebacks
+utf
+utf8
 vec
 visualbasic
 winget

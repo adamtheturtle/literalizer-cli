@@ -1524,9 +1524,9 @@ def test_call_mode_variable_name_existing_variable() -> None:
 def test_call_mode_variable_name_unsupported_shape() -> None:
     """An unsupported call/binding shape raises a clean error.
 
-    ``--variable-name`` with per-element calls has no per-element name
-    vector, so ``literalizer`` rejects the combination; the CLI surfaces
-    it as a clean error rather than a traceback.
+    ``--variable-name`` with multiple per-element calls cannot bind to a
+    single variable name, so ``literalizer`` rejects the combination; the CLI
+    surfaces it as a clean error rather than a traceback.
     """
     runner = CliRunner()
     result = runner.invoke(
@@ -1552,9 +1552,10 @@ def test_call_mode_variable_name_unsupported_shape() -> None:
     )
     assert result.exit_code == 1
     assert result.output == (
-        "Error: Python cannot represent this call shape: variable_form is "
-        "incompatible with per_element=True; the API does not provide a "
-        "name per element\n"
+        "Error: Python cannot represent this call shape: variable_form "
+        "binds a single call result, but this input produces 2 calls; "
+        "supply exactly one call (per_element=False, or per_element=True "
+        "with a single-element source)\n"
     )
 
 
