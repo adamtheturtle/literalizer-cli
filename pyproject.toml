@@ -93,13 +93,13 @@ urls.Source = "https://github.com/adamtheturtle/literalizer-cli"
 scripts.literalize = "literalizer_cli:main"
 
 [tool.setuptools]
-zip-safe = false
-package-data.literalizer_cli = [
-    "py.typed",
-]
 packages.find.where = [
     "src",
 ]
+package-data.literalizer_cli = [
+    "py.typed",
+]
+zip-safe = false
 
 [tool.distutils]
 bdist_wheel.universal = true
@@ -145,15 +145,24 @@ lint.flake8-tidy-imports.banned-api."typing.cast".msg = "typing.cast is banned: 
 lint.pydocstyle.convention = "google"
 
 [tool.pylint]
+DEPRECATED_BUILTINS.bad-functions = [
+    # Use Pylint until Ruff can ban bare builtin calls, or until custom rules
+    # make this removable:
+    # https://github.com/astral-sh/ruff/issues/10079
+    # https://github.com/astral-sh/ruff/issues/970
+    "filter",
+    "getattr",
+    "hasattr",
+    "map",
+    "setattr",
+]
 # Allow the body of an if to be on the same line as the test if there is no
 # else.
 FORMAT.single-line-if-stmt = false
-# Pickle collected data for later comparisons.
-MASTER.persistent = true
-# Use multiple processes to speed up Pylint.
-MASTER.jobs = 0
 # Ignore generated setuptools-scm version files.
 MASTER.ignore-paths = [ "src/.*/_setuptools_scm_version.py" ]
+# Use multiple processes to speed up Pylint.
+MASTER.jobs = 0
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
 # See https://chezsoi.org/lucas/blog/pylint-strict-base-configuration.html.
@@ -163,7 +172,6 @@ MASTER.ignore-paths = [ "src/.*/_setuptools_scm_version.py" ]
 # - pylint.extensions.while_used
 # as they seemed to get in the way.
 MASTER.load-plugins = [
-    "pylint_per_file_ignores",
     "pylint.extensions.bad_builtin",
     "pylint.extensions.comparison_placement",
     "pylint.extensions.consider_refactoring_into_while_condition",
@@ -179,20 +187,48 @@ MASTER.load-plugins = [
     "pylint.extensions.redefined_variable_type",
     "pylint.extensions.set_membership",
     "pylint.extensions.typing",
+    "pylint_per_file_ignores",
 ]
+# Pickle collected data for later comparisons.
+MASTER.persistent = true
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
 MASTER.unsafe-load-any-extension = false
-DEPRECATED_BUILTINS.bad-functions = [
-    # Use Pylint until Ruff can ban bare builtin calls, or until custom rules
-    # make this removable:
-    # https://github.com/astral-sh/ruff/issues/10079
-    # https://github.com/astral-sh/ruff/issues/970
-    "filter",
-    "getattr",
-    "hasattr",
-    "map",
-    "setattr",
+# Disable the message, report, category or checker with the given id(s). You
+# can either give multiple identifiers separated by comma (,) or put this
+# option multiple times (only on the command line, not in the configuration
+# file where it should appear only once).You can also use "--disable=all" to
+# disable everything first and then reenable specific checks. For example, if
+# you want to run only the similarities checker, you can use "--disable=all
+# --enable=similarities". If you want to run only the classes checker, but have
+# no Warning level messages displayed, use"--disable=all --enable=classes
+# --disable=W"
+MESSAGES-CONTROL.disable = [
+    # Too difficult to please.
+    "duplicate-code",
+    # Let ruff handle long lines.
+    "line-too-long",
+    "locally-disabled",
+    "missing-return-type-doc",
+    # We don't need everything to be documented because of mypy.
+    "missing-type-doc",
+    # The Click CLI intentionally has many options and branches.
+    "too-complex",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-branches",
+    "too-many-instance-attributes",
+    "too-many-lines",
+    "too-many-locals",
+    "too-many-public-methods",
+    "too-many-return-statements",
+    "too-many-statements",
+    # Let ruff deal with sorting.
+    "ungrouped-imports",
+    # Let ruff handle unused imports.
+    "unused-import",
+    # Let ruff handle imports.
+    "wrong-import-order",
 ]
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -205,42 +241,6 @@ MESSAGES-CONTROL.enable = [
     "spelling",
     "use-symbolic-message-instead",
     "useless-suppression",
-]
-# Disable the message, report, category or checker with the given id(s). You
-# can either give multiple identifiers separated by comma (,) or put this
-# option multiple times (only on the command line, not in the configuration
-# file where it should appear only once).You can also use "--disable=all" to
-# disable everything first and then reenable specific checks. For example, if
-# you want to run only the similarities checker, you can use "--disable=all
-# --enable=similarities". If you want to run only the classes checker, but have
-# no Warning level messages displayed, use"--disable=all --enable=classes
-# --disable=W"
-MESSAGES-CONTROL.disable = [
-    "too-few-public-methods",
-    "too-many-locals",
-    "too-many-arguments",
-    # The Click CLI intentionally has many options and branches.
-    "too-complex",
-    "too-many-branches",
-    "too-many-instance-attributes",
-    "too-many-public-methods",
-    "too-many-return-statements",
-    "too-many-statements",
-    "too-many-lines",
-    "locally-disabled",
-    # Let ruff handle long lines.
-    "line-too-long",
-    # Let ruff handle unused imports.
-    "unused-import",
-    # Let ruff deal with sorting.
-    "ungrouped-imports",
-    # We don't need everything to be documented because of mypy.
-    "missing-type-doc",
-    "missing-return-type-doc",
-    # Too difficult to please.
-    "duplicate-code",
-    # Let ruff handle imports.
-    "wrong-import-order",
 ]
 # We ignore invalid names because:
 # - We want to use global variables in documentation, which may not be uppercase.
@@ -257,34 +257,42 @@ SPELLING.spelling-private-dict-file = "spelling_private_dict.txt"
 # --spelling-private-dict-file option instead of raising a message.
 SPELLING.spelling-store-unknown-words = "no"
 
+[tool.interrogate]
+fail-under = 100
+exclude = [
+    "src/literalizer_cli/_setuptools_scm_version.py",
+]
+verbose = 2
+omit-covered-files = true
+
 [tool.check-manifest]
 ignore = [
-    ".prettierrc",
     ".pre-commit-config.yaml",
+    ".prettierrc",
     ".vscode/**",
-    "CHANGELOG.rst",
-    "newsfragments",
-    "newsfragments/**",
-    "Dockerfile",
-    "LICENSE",
-    "Makefile",
-    "VERSION",
     "admin",
     "admin/**",
     "bin",
     "bin/**",
+    "CHANGELOG.rst",
     "ci",
     "ci/**",
     "conftest.py",
+    "Dockerfile",
     "docs",
     "docs/**",
     "flake.lock",
     "flake.nix",
+    "LICENSE",
+    "Makefile",
+    "newsfragments",
+    "newsfragments/**",
     "spelling_private_dict.txt",
     "src/*/_setuptools_scm_version.py",
     "tests",
     "tests/**",
     "uv.lock",
+    "VERSION",
     "zizmor.yml",
 ]
 
@@ -294,111 +302,11 @@ optional_dependencies_dev_groups = [
     "release",
 ]
 
-[tool.pyproject-fmt]
-indent = 4
-keep_full_version = true
-max_supported_python = "3.14"
-
-[tool.mypy]
-strict = true
-files = [ "." ]
-exclude = [ "build" ]
-follow_untyped_imports = true
-plugins = [
-    "mypy_strict_kwargs",
-]
-
-[tool.pyrefly]
-disable-project-excludes-heuristics = true
-errors.non-exhaustive-match = "error"
-errors.unused-ignore = "error"
-project-excludes = [
-    "src/*/_setuptools_scm_version.py",
-]
-
-[tool.pyright]
-enableTypeIgnoreComments = false
-reportUnnecessaryTypeIgnoreComment = true
-typeCheckingMode = "strict"
-
-[tool.ty]
-# Disable support for `type: ignore` comments
-analysis.respect-type-ignore-comments = false
-# Error if ty emits any warning-level diagnostics.
-terminal.error-on-warning = true
-
-[tool.pytest]
-ini_options.xfail_strict = true
-ini_options.log_cli = true
-ini_options.addopts = [
-    "-n",
-    "auto",
-]
-
-[tool.coverage]
-run.branch = true
-run.omit = [
-    "src/*/_setuptools_scm_version.py",
-    "src/literalizer_cli/__main__.py",
-]
-report.exclude_also = [
-    "@overload",
-    "class .*\\bProtocol\\):",
-    "if TYPE_CHECKING:",
-]
-report.show_missing = true
-
-[tool.towncrier]
-# The changelog and the per-release GitHub release notes are both built
-# from news fragments under ``newsfragments/``.  The release workflow
-# runs ``towncrier build`` to assemble them; contributors add one
-# fragment file per user-facing change.
-directory = "newsfragments"
-filename = "CHANGELOG.rst"
-# Custom template so an assembled version reproduces the historical
-# style exactly: a bare ``<version>`` heading (no project name, no
-# date) followed by a flat bullet list with no per-type sub-headings.
-template = "docs/towncrier_template.rst.jinja"
-title_format = "{version}"
-# ``title_format`` underline first, then any nested headings.  A bare
-# version such as ``2026.05.18`` underlined with ``-`` matches every
-# pre-towncrier entry in CHANGELOG.rst.
-underlines = [ "-", "~", "^" ]
-issue_format = "#{issue}"
-type = [
-    # A single, unnamed fragment type keeps the assembled output as one
-    # flat bullet list, matching the historical changelog (which never
-    # grouped entries under "Features"/"Bugfixes"/... sub-headings).
-    { directory = "change", name = "", showcontent = true },
-]
-
-[tool.doc8]
-max_line_length = 2000
-ignore_path = [
-    "./.venv",
-    "./.eggs",
-    "./docs/build",
-    "./docs/build/spelling/output.txt",
-    "./node_modules",
-    "./src/*.egg-info/",
-    "./src/*/_setuptools_scm_version.py",
-]
-
-[tool.interrogate]
-fail-under = 100
-omit-covered-files = true
-verbose = 2
+[tool.vulture]
 exclude = [
+    ".venv",
     "src/literalizer_cli/_setuptools_scm_version.py",
 ]
-
-[tool.pydocstringformatter]
-write = true
-split-summary-body = false
-max-line-length = 75
-linewrap-full-docstring = true
-
-[tool.vulture]
 ignore_names = [
     # Sphinx.
     "autoclass_content",
@@ -425,15 +333,107 @@ ignore_names = [
     "source_suffix",
     "spelling_word_list_filename",
     "templates_path",
-    "warning_is_error",
     "towncrier_draft_autoversion_mode",
     "towncrier_draft_include_empty",
     "towncrier_draft_working_directory",
+    "warning_is_error",
 ]
-exclude = [
-    ".venv",
-    "src/literalizer_cli/_setuptools_scm_version.py",
+
+[tool.pyproject-fmt]
+indent = 4
+keep_full_version = true
+max_supported_python = "3.14"
+
+[tool.mypy]
+files = [ "." ]
+exclude = [ "build" ]
+follow_untyped_imports = true
+strict = true
+plugins = [
+    "mypy_strict_kwargs",
 ]
+
+[tool.pyrefly]
+errors.non-exhaustive-match = "error"
+errors.unused-ignore = "error"
+disable-project-excludes-heuristics = true
+project-excludes = [
+    "src/*/_setuptools_scm_version.py",
+]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+enableTypeIgnoreComments = false
+reportUnnecessaryTypeIgnoreComment = true
+
+[tool.ty]
+# Error if ty emits any warning-level diagnostics.
+terminal.error-on-warning = true
+# Disable support for `type: ignore` comments
+analysis.respect-type-ignore-comments = false
+
+[tool.pytest]
+ini_options.addopts = [
+    "-n",
+    "auto",
+]
+ini_options.xfail_strict = true
+ini_options.log_cli = true
+
+[tool.coverage]
+run.branch = true
+run.omit = [
+    "src/*/_setuptools_scm_version.py",
+    "src/literalizer_cli/__main__.py",
+]
+report.exclude_also = [
+    "@overload",
+    "class .*\\bProtocol\\):",
+    "if TYPE_CHECKING:",
+]
+report.show_missing = true
+
+[tool.towncrier]
+# The changelog and the per-release GitHub release notes are both built
+# from news fragments under ``newsfragments/``.  The release workflow
+# runs ``towncrier build`` to assemble them; contributors add one
+# fragment file per user-facing change.
+directory = "newsfragments"
+filename = "CHANGELOG.rst"
+# Custom template so an assembled version reproduces the historical
+# style exactly: a bare ``<version>`` heading (no project name, no
+# date) followed by a flat bullet list with no per-type sub-headings.
+template = "docs/towncrier_template.rst.jinja"
+title_format = "{version}"
+issue_format = "#{issue}"
+# ``title_format`` underline first, then any nested headings.  A bare
+# version such as ``2026.05.18`` underlined with ``-`` matches every
+# pre-towncrier entry in CHANGELOG.rst.
+underlines = [ "-", "~", "^" ]
+type = [
+    # A single, unnamed fragment type keeps the assembled output as one
+    # flat bullet list, matching the historical changelog (which never
+    # grouped entries under "Features"/"Bugfixes"/... sub-headings).
+    { directory = "change", name = "", showcontent = true },
+]
+
+[tool.doc8]
+max_line_length = 2000
+ignore_path = [
+    "./.venv",
+    "./.eggs",
+    "./docs/build",
+    "./docs/build/spelling/output.txt",
+    "./node_modules",
+    "./src/*.egg-info/",
+    "./src/*/_setuptools_scm_version.py",
+]
+
+[tool.pydocstringformatter]
+write = true
+split-summary-body = false
+max-line-length = 75
+linewrap-full-docstring = true
 
 [tool.yamlfix]
 section_whitelines = 1
