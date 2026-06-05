@@ -189,7 +189,7 @@ repos:
         additional_dependencies: [*uv_version]
       - id: strict-kwargs-fix
         name: strict-kwargs
-        entry: uv run --extra=dev strict-kwargs fix --diff
+        entry: uv run --extra=dev strict-kwargs check --fix --diff
         language: python
         types_or: [python]
         additional_dependencies: [*uv_version]
