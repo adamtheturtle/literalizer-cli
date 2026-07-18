@@ -101,9 +101,6 @@ package-data.literalizer_cli = [
 ]
 zip-safe = false
 
-[tool.distutils]
-bdist_wheel.universal = true
-
 [tool.setuptools_scm]
 version_file = "src/literalizer_cli/_setuptools_scm_version.py"
 version_scheme = "post-release"
