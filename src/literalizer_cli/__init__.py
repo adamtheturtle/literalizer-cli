@@ -106,6 +106,9 @@ _OPTION_SUPPORT_FLAG: dict[str, Callable[[LanguageCls], bool]] = {
     "record_struct_name_prefix": (
         lambda cls: cls.supports_record_struct_name_prefix
     ),
+    "heterogeneous_value_variant_name": (
+        lambda cls: "heterogeneous_value_variant_name" in cls.__dict__
+    ),
 }
 
 
@@ -288,6 +291,7 @@ _STRING_OPTIONS: frozenset[str] = frozenset(
         "default_ordered_map_value_type",
         "module_name",
         "record_struct_name_prefix",
+        "heterogeneous_value_variant_name",
     },
 )
 
@@ -341,6 +345,8 @@ _LITERALIZER_EXCEPTIONS = (
     literalizer.exceptions.WrapCombinedInFileNotSupportedError,
     literalizer.exceptions.DottedCallTargetNotSupportedError,
     literalizer.exceptions.CallArgNotSupportedError,
+    literalizer.exceptions.ReservedVariableNameError,
+    literalizer.exceptions.InvalidNewVariableNameError,
 )
 
 
@@ -624,6 +630,14 @@ def literalize_call_input(
     ),
 )
 @click.option(
+    "--heterogeneous-value-variant-name",
+    default=None,
+    help=(
+        "Name for a generated heterogeneous-value carrier"
+        " (language-specific, free-form string)."
+    ),
+)
+@click.option(
     "--include-preamble/--no-include-preamble",
     default=False,
     help="Include language preamble (e.g. package declarations, imports).",
@@ -711,6 +725,7 @@ def main(
     default_set_element_type: str | None,
     default_ordered_map_value_type: str | None,
     record_struct_name_prefix: str | None,
+    heterogeneous_value_variant_name: str | None,
     include_preamble: bool,
     mode: str,
     call_function: str | None,
@@ -775,6 +790,7 @@ def main(
         "default_ordered_map_value_type": default_ordered_map_value_type,
         "module_name": module_name,
         "record_struct_name_prefix": record_struct_name_prefix,
+        "heterogeneous_value_variant_name": heterogeneous_value_variant_name,
     }
     for option_name, value in cli_string_options.items():
         if value is not None:
