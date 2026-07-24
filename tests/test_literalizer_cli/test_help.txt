@@ -90,14 +90,15 @@ Options:
   --numeric-style TEXT            Numeric style (language-specific). Choices:
                                   explicit, overloaded.
   --language-version TEXT         Target language version (language-specific).
-                                  Choices: ada_2022, ans, ansi, c99, cpp20,
-                                  dev_2024, dotnet_6, edition_2021, es2015,
-                                  ghc2021, ieee_1800_2017, jdk_11, jdk_16,
-                                  otp_25, py38, py39, r2022a, r7rs, sml_97, v0,
-                                  v0_12, v0_14, v0_15, v0_19, v0_20, v0_4, v1,
-                                  v10, v17, v1_11, v1_14, v1_18, v1_2, v1_9, v2,
-                                  v2002, v2003, v2008, v24_5, v3, v4, v5, v5_1,
-                                  v5_36, v5_4, v5_9, v6d, v7, v8, v8_1, v8_6.
+                                  Choices: ada_2022, ans, ansi, c99, cpp14,
+                                  cpp17, cpp20, dev_2024, dotnet_6,
+                                  edition_2021, es2015, ghc2021, ieee_1800_2017,
+                                  jdk_11, jdk_16, otp_25, py38, py39, r2022a,
+                                  r7rs, sml_97, v0, v0_12, v0_14, v0_15, v0_19,
+                                  v0_20, v0_4, v1, v10, v17, v1_11, v1_14,
+                                  v1_18, v1_2, v1_9, v2, v2002, v2003, v2008,
+                                  v24_5, v3, v4, v5, v5_1, v5_36, v5_4, v5_9,
+                                  v6d, v7, v8, v8_1, v8_6.
   --module-name TEXT              Module/namespace name for languages whose
                                   wrap-in-file form introduces a named scope
                                   (e.g. C, C++, D, Erlang, Fortran, F#, Java,
@@ -121,6 +122,9 @@ Options:
                                   (language-specific, free-form string). Names
                                   must be valid PascalCase identifiers for the
                                   target language.
+  --heterogeneous-value-variant-name TEXT
+                                  Name for a generated heterogeneous-value
+                                  carrier (language-specific, free-form string).
   --include-preamble / --no-include-preamble
                                   Include language preamble (e.g. package
                                   declarations, imports).

@@ -1767,6 +1767,92 @@ def test_record_struct_name_prefix_unsupported_for_language() -> None:
     assert result.output == expected
 
 
+def test_cpp14_heterogeneous_value_variant_name() -> None:
+    """C++14 carriers can be named through the CLI."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "cpp",
+            "-f",
+            "json",
+            "--language-version",
+            "cpp14",
+            "--heterogeneous-strategy",
+            "error",
+            "--heterogeneous-value-variant-name",
+            "DynamicValue",
+            "--include-preamble",
+        ],
+        input='[1, "a"]\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, result.output
+    assert "struct DynamicValue {" in result.output
+    assert "std::vector<DynamicValue>{" in result.output
+
+
+def test_heterogeneous_value_variant_name_unsupported() -> None:
+    """Carrier names reject languages without the constructor option."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--heterogeneous-value-variant-name",
+            "Value",
+        ],
+        input="1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    expected_usage_error_exit_code = 2
+    assert result.exit_code == expected_usage_error_exit_code
+    assert result.output.endswith(
+        "Error: --heterogeneous-value-variant-name is not supported for "
+        "language 'python'.\n"
+    )
+
+
+@pytest.mark.parametrize(
+    argnames=("variable_name", "reason"),
+    argvalues=[
+        ("class", "it is a reserved identifier"),
+        ("bad-name", "it is not a valid identifier"),
+    ],
+)
+def test_invalid_new_variable_name(
+    variable_name: str,
+    reason: str,
+) -> None:
+    """Invalid new variable names surface as clean CLI errors."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--variable-name",
+            variable_name,
+        ],
+        input="1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert result.output == (
+        f"Error: Python cannot use NewVariable name {variable_name!r}: "
+        f"{reason}\n"
+    )
+
+
 def test_tuple_arity_not_representable() -> None:
     """A tuple arity with no native form surfaces as a clean CLI error."""
     runner = CliRunner()
