@@ -46,6 +46,18 @@ _REF_CASE_MAP: dict[str, IdentifierCase] = {
     member.name.lower(): member for member in IdentifierCase
 }
 
+
+def _language_owned_enum(
+    *, lang_cls: LanguageCls, name: str
+) -> type[enum.Enum]:
+    """Return an enum defined only by a particular language class."""
+    enum_cls = vars(lang_cls)[name]
+    if not isinstance(enum_cls, type) or not issubclass(enum_cls, enum.Enum):
+        msg = f"{lang_cls.__name__}.{name} is not an enum"
+        raise TypeError(msg)
+    return enum_cls
+
+
 # Map from CLI option name to a getter for the enum class.
 _OPTION_TO_ENUM: dict[str, Callable[[LanguageCls], type[enum.Enum]]] = {
     "sequence_format": lambda cls: cls.SequenceFormats,
@@ -70,6 +82,14 @@ _OPTION_TO_ENUM: dict[str, Callable[[LanguageCls], type[enum.Enum]]] = {
     "call_style": lambda cls: cls.CallStyles,
     "numeric_style": lambda cls: cls.NumericStyles,
     "language_version": lambda cls: cls.VersionFormats,
+    "annotation_evaluation": lambda cls: _language_owned_enum(
+        lang_cls=cls,
+        name="AnnotationEvaluations",
+    ),
+    "union_format": lambda cls: _language_owned_enum(
+        lang_cls=cls,
+        name="UnionFormats",
+    ),
 }
 
 
@@ -109,6 +129,8 @@ _OPTION_SUPPORT_FLAG: dict[str, Callable[[LanguageCls], bool]] = {
     "heterogeneous_value_variant_name": (
         lambda cls: "heterogeneous_value_variant_name" in cls.__dict__
     ),
+    "annotation_evaluation": lambda cls: "AnnotationEvaluations" in vars(cls),
+    "union_format": lambda cls: "UnionFormats" in vars(cls),
 }
 
 
@@ -230,6 +252,14 @@ _NUMERIC_STYLE_HELP = _choices_help(
 _LANGUAGE_VERSION_HELP = _choices_help(
     label="Target language version",
     option_name="language_version",
+)
+_ANNOTATION_EVALUATION_HELP = _choices_help(
+    label="Annotation evaluation",
+    option_name="annotation_evaluation",
+)
+_UNION_FORMAT_HELP = _choices_help(
+    label="Union annotation format",
+    option_name="union_format",
 )
 
 
@@ -576,6 +606,16 @@ def literalize_call_input(
     help=_LANGUAGE_VERSION_HELP,
 )
 @click.option(
+    "--annotation-evaluation",
+    default=None,
+    help=_ANNOTATION_EVALUATION_HELP,
+)
+@click.option(
+    "--union-format",
+    default=None,
+    help=_UNION_FORMAT_HELP,
+)
+@click.option(
     "--module-name",
     default=None,
     help=(
@@ -718,6 +758,8 @@ def main(
     call_style: str | None,
     numeric_style: str | None,
     language_version: str | None,
+    annotation_evaluation: str | None,
+    union_format: str | None,
     module_name: str | None,
     default_dict_key_type: str | None,
     default_dict_value_type: str | None,
@@ -762,6 +804,8 @@ def main(
         "call_style": call_style,
         "numeric_style": numeric_style,
         "language_version": language_version,
+        "annotation_evaluation": annotation_evaluation,
+        "union_format": union_format,
     }
     for option_name, value in cli_language_options.items():
         if value is not None:

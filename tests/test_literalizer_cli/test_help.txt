@@ -99,6 +99,10 @@ Options:
                                   v1_18, v1_2, v1_9, v2, v2002, v2003, v2008,
                                   v24_5, v3, v4, v5, v5_1, v5_36, v5_4, v5_9,
                                   v6d, v7, v8, v8_1, v8_6.
+  --annotation-evaluation TEXT    Annotation evaluation (language-specific).
+                                  Choices: eager, postponed.
+  --union-format TEXT             Union annotation format (language-specific).
+                                  Choices: auto, pipe, typing.
   --module-name TEXT              Module/namespace name for languages whose
                                   wrap-in-file form introduces a named scope
                                   (e.g. C, C++, D, Erlang, Fortran, F#, Java,
