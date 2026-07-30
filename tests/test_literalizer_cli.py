@@ -1979,3 +1979,38 @@ def test_wrap_in_file() -> None:
     assert result.exit_code == 0
     assert "package main" in result.output
     assert "data" in result.output
+
+
+def test_python_union_format() -> None:
+    """Python annotation and union options reach literalizer."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "--language",
+            "python",
+            "--input-format",
+            "yaml",
+            "--variable-name",
+            "my_data",
+            "--wrap-in-file",
+            "--variable-type-hints",
+            "always",
+            "--annotation-evaluation",
+            "postponed",
+            "--union-format",
+            "typing",
+        ],
+        input="- hello\n- 42\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert result.output == (
+        "from __future__ import annotations\n"
+        "from typing import Union\n"
+        "my_data: tuple[Union[str, int], ...] = (\n"
+        '    "hello",\n'
+        "    42,\n"
+        ")\n"
+    )
