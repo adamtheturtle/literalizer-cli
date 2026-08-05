@@ -71,8 +71,8 @@ Options:
   --numeric-separator TEXT        Numeric separator (language-specific).
                                   Choices: none, underscore.
   --string-format TEXT            String format (language-specific). Choices:
-                                  double, double_utf8, escaped, explicit, raw,
-                                  single, verbatim.
+                                  double, double_utf8, escaped, explicit,
+                                  multiline, raw, single, verbatim.
   --trailing-comma TEXT           Trailing comma (language-specific). Choices:
                                   no, yes.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
@@ -129,6 +129,9 @@ Options:
   --heterogeneous-value-variant-name TEXT
                                   Name for a generated heterogeneous-value
                                   carrier (language-specific, free-form string).
+  --multiline-raw-string-delimiter-base TEXT
+                                  Fallback delimiter base for C++ multiline raw
+                                  strings (language-specific, free-form string).
   --include-preamble / --no-include-preamble
                                   Include language preamble (e.g. package
                                   declarations, imports).
