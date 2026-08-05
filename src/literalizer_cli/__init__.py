@@ -126,6 +126,9 @@ _OPTION_SUPPORT_FLAG: dict[str, Callable[[LanguageCls], bool]] = {
     "heterogeneous_value_variant_name": (
         lambda cls: "heterogeneous_value_variant_name" in cls.__dict__
     ),
+    "multiline_raw_string_delimiter_base": (
+        lambda cls: "multiline_raw_string_delimiter_base" in cls.__dict__
+    ),
     "annotation_evaluation": lambda cls: "AnnotationEvaluations" in vars(cls),
     "union_format": lambda cls: "UnionFormats" in vars(cls),
 }
@@ -319,6 +322,7 @@ _STRING_OPTIONS: frozenset[str] = frozenset(
         "module_name",
         "record_struct_name_prefix",
         "heterogeneous_value_variant_name",
+        "multiline_raw_string_delimiter_base",
     },
 )
 
@@ -675,6 +679,14 @@ def literalize_call_input(
     ),
 )
 @click.option(
+    "--multiline-raw-string-delimiter-base",
+    default=None,
+    help=(
+        "Fallback delimiter base for C++ multiline raw strings"
+        " (language-specific, free-form string)."
+    ),
+)
+@click.option(
     "--include-preamble/--no-include-preamble",
     default=False,
     help="Include language preamble (e.g. package declarations, imports).",
@@ -765,6 +777,7 @@ def main(
     default_ordered_map_value_type: str | None,
     record_struct_name_prefix: str | None,
     heterogeneous_value_variant_name: str | None,
+    multiline_raw_string_delimiter_base: str | None,
     include_preamble: bool,
     mode: str,
     call_function: str | None,
@@ -832,6 +845,9 @@ def main(
         "module_name": module_name,
         "record_struct_name_prefix": record_struct_name_prefix,
         "heterogeneous_value_variant_name": heterogeneous_value_variant_name,
+        "multiline_raw_string_delimiter_base": (
+            multiline_raw_string_delimiter_base
+        ),
     }
     for option_name, value in cli_string_options.items():
         if value is not None:
@@ -849,7 +865,10 @@ def main(
 
     try:
         lang_instance = lang_cls(indent=indent, **lang_kwargs)
-    except literalizer.exceptions.InvalidRecordNameError as exc:
+    except (
+        literalizer.exceptions.InvalidCppRawStringDelimiterError,
+        literalizer.exceptions.InvalidRecordNameError,
+    ) as exc:
         raise click.ClickException(message=str(object=exc)) from None
 
     variable_form: VariableForm | None = None

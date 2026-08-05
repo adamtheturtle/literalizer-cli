@@ -566,6 +566,81 @@ def test_sequence_format() -> None:
     assert result.output == expected
 
 
+def test_multiline_string_format_with_cpp_delimiter_base() -> None:
+    """C++ multiline strings use the configured delimiter after a
+    collision.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "cpp",
+            "-f",
+            "json",
+            "--string-format",
+            "multiline",
+            "--multiline-raw-string-delimiter-base",
+            "custom",
+        ],
+        input=r'"first )\"\nsecond"' "\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert result.output == 'R"custom(first )"\nsecond)custom"\n'
+
+
+def test_invalid_cpp_multiline_raw_string_delimiter_base() -> None:
+    """Invalid C++ raw-string delimiter bases are clean CLI errors."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "cpp",
+            "-f",
+            "json",
+            "--multiline-raw-string-delimiter-base",
+            "bad delimiter",
+        ],
+        input='"value"\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert result.output == (
+        "Error: Cpp multiline_raw_string_delimiter_base 'bad delimiter' is "
+        "invalid: these characters are not permitted by C++'s raw-string "
+        "delimiter grammar: [' ']\n"
+    )
+
+
+def test_cpp_multiline_raw_string_delimiter_base_unsupported() -> None:
+    """The C++ delimiter option rejects unsupported languages."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--multiline-raw-string-delimiter-base",
+            "custom",
+        ],
+        input='"value"\n',
+        catch_exceptions=False,
+        color=True,
+    )
+    expected_usage_error_exit_code = 2
+    assert result.exit_code == expected_usage_error_exit_code
+    assert (
+        "--multiline-raw-string-delimiter-base is not supported for "
+        "language 'python'" in result.output
+    )
+
+
 def test_set_format() -> None:
     """--set-format changes the set representation."""
     runner = CliRunner()
