@@ -23,7 +23,7 @@ class ExceptionCase:
     input_string: str
     language: Any
     expected: str
-    variable_form: NewVariable | ExistingVariable | None = None
+    variable_form: NewVariable | ExistingVariable | None = None  # noqa: NOD001
 
 
 def test_help(file_regression: FileRegressionFixture) -> None:
