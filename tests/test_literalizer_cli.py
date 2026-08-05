@@ -567,7 +567,7 @@ def test_sequence_format() -> None:
 
 
 def test_multiline_string_format_with_cpp_delimiter_base() -> None:
-    """C++ multiline strings use the configured delimiter after a
+    """C++ multi-line strings use the configured delimiter after a
     collision.
     """
     runner = CliRunner()
