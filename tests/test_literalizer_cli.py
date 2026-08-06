@@ -23,7 +23,7 @@ class ExceptionCase:
     input_string: str
     language: Any
     expected: str
-    variable_form: NewVariable | ExistingVariable | None = None  # noqa: NOD001
+    variable_form: NewVariable | ExistingVariable | None
 
 
 def test_help(file_regression: FileRegressionFixture) -> None:
@@ -462,6 +462,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
                 "Use empty_dict_key=R.EmptyDictKey.POSITIONAL to emit them "
                 "as unnamed list elements instead."
             ),
+            variable_form=None,
         ),
         ExceptionCase(
             input_format=InputFormat.JSON,
@@ -472,6 +473,7 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
                 "cannot be represented in the target language "
                 "(found types: int, str)"
             ),
+            variable_form=None,
         ),
         ExceptionCase(
             input_format=InputFormat.JSON,
@@ -482,12 +484,14 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
                 " (got 1 items, including null)."
                 " Use sequence_format=ARRAY instead."
             ),
+            variable_form=None,
         ),
         ExceptionCase(
             input_format=InputFormat.JSON,
             input_string='{"a": }\n',
             language=Python(),
             expected="Invalid JSON: Expecting value at line 1 column 7",
+            variable_form=None,
         ),
         ExceptionCase(
             input_format=InputFormat.YAML,
@@ -499,12 +503,14 @@ def test_invalid_yaml_is_shown_cleanly() -> None:
                 "did not find expected ',' or ']'\n"
                 '  in "<unicode string>", line 2, column 1'
             ),
+            variable_form=None,
         ),
         ExceptionCase(
             input_format=InputFormat.YAML,
             input_string="1: a\n2: b\n",
             language=Go(),
             expected="Go cannot represent dict key of type int",
+            variable_form=None,
         ),
     ],
     ids=(
