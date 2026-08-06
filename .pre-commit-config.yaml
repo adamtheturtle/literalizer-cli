@@ -165,6 +165,15 @@ repos:
         stages: [pre-commit]
         require_serial: true
 
+      - id: no-defaults
+        name: no-defaults
+        entry: uv run --extra=dev no-defaults
+        language: python
+        types_or: [python]
+        additional_dependencies: [*uv_version]
+        stages: [pre-commit]
+        require_serial: true
+
       - id: pyproject-fmt-fix
         name: pyproject-fmt
         entry: uv run --extra=dev pyproject-fmt
@@ -264,10 +273,4 @@ repos:
         pass_filenames: false
         files: (^pyproject\.toml$|^uv\.lock$)
         additional_dependencies: [*uv_version]
-        stages: [pre-commit]
-
-  - repo: https://github.com/adamtheturtle/no-defaults
-    rev: v1.0.1
-    hooks:
-      - id: no-defaults
         stages: [pre-commit]
