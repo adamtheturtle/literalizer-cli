@@ -1,6 +1,0 @@
-Bump ``literalizer`` to 2026.7.24.1.  The CLI now offers C++14, C++17, and
-C++20 through ``--language-version`` and exposes generated heterogeneous-value
-carrier names through ``--heterogeneous-value-variant-name``.  The release also
-adopts upstream fixes for RECORD shape inference, null-byte strings, empty
-containers, wide integers, and variable-name validation; invalid or reserved new
-variable names are surfaced as clean CLI errors.
