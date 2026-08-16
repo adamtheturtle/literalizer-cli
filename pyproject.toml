@@ -34,7 +34,7 @@ dynamic = [
 ]
 dependencies = [
     "click>=8.3.0,<8.5.0",
-    "literalizer==2026.8.2",
+    "literalizer==2026.8.16",
 ]
 optional-dependencies.dev = [
     "actionlint-py==1.7.12.24",
@@ -55,7 +55,7 @@ optional-dependencies.dev = [
     "pyright==1.1.411",
     "pyroma==5.0.1",
     "pytest==9.1.1",
-    "pytest-beartype-tests==2026.4.26",
+    "pytest-beartype-tests==2026.8.16",
     "pytest-cov==7.1.0",
     "pytest-regressions==2.11.0",
     "pytest-xdist==3.8.0",
