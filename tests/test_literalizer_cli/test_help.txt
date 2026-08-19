@@ -28,18 +28,19 @@ Options:
   --set-format TEXT               Set format (language-specific). Choices:
                                   array, btree_set, dict, frozenset, hash_set,
                                   map_set, set, sorted_set, tree_set.
-  --date-format TEXT              Date format (language-specific). Choices: cpp,
-                                  csharp, dart, elixir, erlang, fsharp, go,
-                                  haskell, iso, java, js, julia, kotlin, lua,
-                                  matlab, nim, objc, ocaml, perl, php, python,
-                                  r, raku, ruby, rust, scala, sml, swift, toml,
-                                  yaml, zig.
+  --date-format TEXT              Date format (language-specific). Choices:
+                                  clojure, cpp, crystal, csharp, dart, elixir,
+                                  erlang, fsharp, go, groovy, haskell, iso,
+                                  java, js, julia, kotlin, lua, matlab, nim,
+                                  objc, ocaml, perl, php, powershell, python, r,
+                                  racket, raku, ruby, rust, scala, sml, swift,
+                                  toml, visual_basic, yaml, zig.
   --datetime-format TEXT          Datetime format (language-specific). Choices:
                                   cpp, csharp, dart, elixir, epoch, erlang,
                                   fsharp, go, haskell, instant, iso, js, julia,
                                   kotlin, lua, matlab, nim, objc, ocaml, perl,
                                   php, python, r, raku, ruby, rust, scala, sml,
-                                  swift, toml, yaml, zig, zoned.
+                                  swift, toml, yaml, zoned.
   --bytes-format TEXT             Bytes format (language-specific). Choices:
                                   base64, binary, hex, python.
   --comment-format TEXT           Comment format (language-specific). Choices:
