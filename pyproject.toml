@@ -269,7 +269,7 @@ omit-covered-files = true
 
 [tool.check-manifest]
 ignore = [
-    ".pre-commit-config.yaml",
+    "prek.toml",
     ".prettierrc",
     ".vale.ini",
     ".vscode/**",
