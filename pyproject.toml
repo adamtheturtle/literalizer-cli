@@ -269,7 +269,6 @@ omit-covered-files = true
 
 [tool.check-manifest]
 ignore = [
-    "prek.toml",
     ".prettierrc",
     ".vale.ini",
     ".vscode/**",
@@ -290,6 +289,7 @@ ignore = [
     "Makefile",
     "newsfragments",
     "newsfragments/**",
+    "prek.toml",
     "spelling_private_dict.txt",
     "src/*/_setuptools_scm_version.py",
     "tests",
