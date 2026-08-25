@@ -16,6 +16,9 @@ from pytest_regressions.file_regression import FileRegressionFixture
 import literalizer_cli
 from literalizer_cli import main
 
+_USAGE_ERROR_EXIT_CODE = 2
+"""Click's exit code for a ``UsageError``."""
+
 
 @dataclass(frozen=True, kw_only=True)
 class ExceptionCase:
@@ -2158,3 +2161,127 @@ def test_every_library_exception_is_caught() -> None:
         if not issubclass(obj, literalizer.exceptions.LiteralizerError)
     ]
     assert not uncaught
+
+
+@pytest.mark.parametrize(
+    argnames=("args", "expected"),
+    argvalues=[
+        pytest.param(
+            ["-l", "python", "--call-function", "f"],
+            "--call-function has no effect in literal mode.",
+            id="call-function-in-literal-mode",
+        ),
+        pytest.param(
+            ["-l", "python", "--call-params", "x"],
+            "--call-params has no effect in literal mode.",
+            id="call-params-in-literal-mode",
+        ),
+        pytest.param(
+            ["-l", "python", "--per-element"],
+            "--per-element has no effect in literal mode.",
+            id="per-element-in-literal-mode",
+        ),
+    ],
+)
+def test_call_options_rejected_in_literal_mode(
+    args: list[str],
+    expected: str,
+) -> None:
+    """Call-mode options are refused rather than silently ignored."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=args,
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert expected in result.output
+
+
+@pytest.mark.parametrize(
+    argnames=("extra", "expected"),
+    argvalues=[
+        pytest.param(
+            ["--pre-indent-level", "3"],
+            "--pre-indent-level has no effect in call mode.",
+            id="pre-indent-level",
+        ),
+        pytest.param(
+            ["--no-include-delimiters"],
+            "--include-delimiters has no effect in call mode.",
+            id="include-delimiters",
+        ),
+    ],
+)
+def test_literal_options_rejected_in_call_mode(
+    extra: list[str],
+    expected: str,
+) -> None:
+    """Literal-mode options are refused rather than silently ignored."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "f",
+            "--call-params",
+            "x",
+            *extra,
+        ],
+        input="[[1]]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert expected in result.output
+
+
+def test_no_new_variable_requires_variable_name() -> None:
+    """``--no-new-variable`` alone is a mistake, not a silent no-op."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "--no-new-variable"],
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert "--no-new-variable requires --variable-name." in result.output
+
+
+def test_default_valued_options_are_not_rejected() -> None:
+    """A mode-specific default must not be mistaken for an explicit value.
+
+    ``--pre-indent-level`` defaults to 0 and ``--include-delimiters`` to
+    True, so call mode has to check how the value arrived, not what it is.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "f",
+            "--call-params",
+            "x",
+        ],
+        input="[[1]]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert result.output == "f(x=1)\n"
