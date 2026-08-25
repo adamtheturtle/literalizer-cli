@@ -351,34 +351,11 @@ def _resolve_language_option(
     return enum_cls[upper_value]
 
 
-_LITERALIZER_EXCEPTIONS = (
-    literalizer.exceptions.JSONParseError,
-    literalizer.exceptions.JSON5ParseError,
-    literalizer.exceptions.YAMLParseError,
-    literalizer.exceptions.TOMLParseError,
-    literalizer.exceptions.InvalidDictKeyError,
-    literalizer.exceptions.HeterogeneousCollectionError,
-    literalizer.exceptions.HeterogeneousScalarCollectionError,
-    literalizer.exceptions.TupleArityNotRepresentableError,
-    literalizer.exceptions.NullInCollectionError,
-    literalizer.exceptions.PerElementNotListError,
-    literalizer.exceptions.ParameterCountMismatchError,
-    literalizer.exceptions.CallsNotSupportedByLanguageError,
-    literalizer.exceptions.CallsNotSupportedByToolError,
-    literalizer.exceptions.IncompatibleFormatsError,
-    literalizer.exceptions.UnrepresentableInputError,
-    literalizer.exceptions.UnrepresentableIntegerError,
-    literalizer.exceptions.UnrepresentableSpecialFloatError,
-    literalizer.exceptions.UnsupportedIdentifierCaseError,
-    literalizer.exceptions.UnsupportedCallShapeError,
-    literalizer.exceptions.VariableNameNotSupportedError,
-    literalizer.exceptions.WrapInFileWithoutVariableNotSupportedError,
-    literalizer.exceptions.WrapCombinedInFileNotSupportedError,
-    literalizer.exceptions.DottedCallTargetNotSupportedError,
-    literalizer.exceptions.CallArgNotSupportedError,
-    literalizer.exceptions.ReservedVariableNameError,
-    literalizer.exceptions.InvalidNewVariableNameError,
-)
+# Every exception the library raises derives from ``LiteralizerError``, so
+# catching the base class keeps the CLI's clean error output correct as the
+# library grows. A hand-maintained tuple silently regressed instead: any
+# exception missing from it escaped as a raw Python traceback.
+_LITERALIZER_EXCEPTIONS = literalizer.exceptions.LiteralizerError
 
 
 def literalize_input(
@@ -865,10 +842,7 @@ def main(
 
     try:
         lang_instance = lang_cls(indent=indent, **lang_kwargs)
-    except (
-        literalizer.exceptions.InvalidCppRawStringDelimiterError,
-        literalizer.exceptions.InvalidRecordNameError,
-    ) as exc:
+    except _LITERALIZER_EXCEPTIONS as exc:
         raise click.ClickException(message=str(object=exc)) from None
 
     variable_form: VariableForm | None = None
