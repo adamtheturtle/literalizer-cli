@@ -1,9 +1,11 @@
 """Tests for literalizer_cli."""
 
+import inspect
 import textwrap
 from dataclasses import dataclass
 from typing import Any
 
+import literalizer.exceptions
 import pytest
 from click import ClickException
 from click.testing import CliRunner
@@ -2095,3 +2097,64 @@ def test_python_union_format() -> None:
         "    42,\n"
         ")\n"
     )
+
+
+def test_library_exception_not_in_a_hand_maintained_list() -> None:
+    """An exception the CLI never enumerated is still a clean CLI error.
+
+    ``UnrepresentableEmptyDictError`` is one of the 32 ``LiteralizerError``
+    subclasses that the old hand-maintained tuple omitted, so it escaped as a
+    Python traceback.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--language", "lua", "--input-format", "json"],
+        input="{}\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert result.output.startswith("Error: ")
+    assert "Traceback" not in result.output
+
+
+def test_language_construction_failure_is_a_clean_error() -> None:
+    """A constructor rejection is reported as a CLI error, not a traceback.
+
+    Language construction happens outside ``literalize_input``, and was guarded
+    by a separate two-entry tuple, so ``InvalidModuleNameError`` escaped.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--language", "java", "--module-name", "123 bad"],
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert result.output.startswith("Error: ")
+    assert "Traceback" not in result.output
+
+
+def test_every_library_exception_is_caught() -> None:
+    """Every ``literalizer`` exception derives from the caught base class.
+
+    Guards the regression directly: if the library grows an exception outside
+    the hierarchy, the CLI would leak it as a traceback again.
+    """
+    subclasses = [
+        obj
+        for obj in vars(literalizer.exceptions).values()
+        if inspect.isclass(object=obj)
+        and issubclass(obj, Exception)
+        and obj is not literalizer.exceptions.LiteralizerError
+    ]
+    assert subclasses
+    uncaught = [
+        obj.__name__
+        for obj in subclasses
+        if not issubclass(obj, literalizer.exceptions.LiteralizerError)
+    ]
+    assert not uncaught
