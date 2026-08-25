@@ -351,13 +351,6 @@ def _resolve_language_option(
     return enum_cls[upper_value]
 
 
-# Every exception the library raises derives from ``LiteralizerError``, so
-# catching the base class keeps the CLI's clean error output correct as the
-# library grows. A hand-maintained tuple silently regressed instead: any
-# exception missing from it escaped as a raw Python traceback.
-_LITERALIZER_EXCEPTIONS = literalizer.exceptions.LiteralizerError
-
-
 def literalize_input(
     *,
     input_string: str,
@@ -383,7 +376,11 @@ def literalize_input(
             ref_case=ref_case,
             ref_key=ref_key,
         )
-    except _LITERALIZER_EXCEPTIONS as exc:
+    # Every exception the library raises derives from
+    # ``LiteralizerError``. Matching the base class keeps clean error
+    # output correct as the library grows: a hand-maintained tuple let
+    # any exception missing from it escape as a Python traceback.
+    except literalizer.exceptions.LiteralizerError as exc:
         raise click.ClickException(message=str(object=exc)) from None
 
 
@@ -416,7 +413,11 @@ def literalize_call_input(
             ref_key=ref_key,
             variable_form=variable_form,
         )
-    except _LITERALIZER_EXCEPTIONS as exc:
+    # Every exception the library raises derives from
+    # ``LiteralizerError``. Matching the base class keeps clean error
+    # output correct as the library grows: a hand-maintained tuple let
+    # any exception missing from it escape as a Python traceback.
+    except literalizer.exceptions.LiteralizerError as exc:
         raise click.ClickException(message=str(object=exc)) from None
 
 
@@ -842,7 +843,11 @@ def main(
 
     try:
         lang_instance = lang_cls(indent=indent, **lang_kwargs)
-    except _LITERALIZER_EXCEPTIONS as exc:
+    # Every exception the library raises derives from
+    # ``LiteralizerError``. Matching the base class keeps clean error
+    # output correct as the library grows: a hand-maintained tuple let
+    # any exception missing from it escape as a Python traceback.
+    except literalizer.exceptions.LiteralizerError as exc:
         raise click.ClickException(message=str(object=exc)) from None
 
     variable_form: VariableForm | None = None
