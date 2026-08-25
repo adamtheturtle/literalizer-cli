@@ -9,6 +9,7 @@ from importlib.metadata import PackageNotFoundError, version
 
 import click
 import literalizer.exceptions
+from click.core import ParameterSource
 from literalizer import (
     ExistingVariable,
     IdentifierCase,
@@ -349,6 +350,45 @@ def _resolve_language_option(
             f"--{cli_name}. Valid choices: {choices}.",
         )
     return enum_cls[upper_value]
+
+
+def _given_on_command_line(*, name: str) -> bool:
+    """Return whether an option was supplied rather than left at its
+    default.
+
+    Options that do nothing in the selected mode are rejected, so the check
+    has to distinguish an explicit value from a default that happens to match.
+    """
+    context = click.get_current_context()
+    source = context.get_parameter_source(name=name)
+    return source == ParameterSource.COMMANDLINE
+
+
+def _reject_options_ignored_by_mode(*, mode: str) -> None:
+    """Reject options that the selected mode never reads.
+
+    Silently ignoring them hides a mistake: the command succeeds and prints
+    output that does not reflect what was asked for.
+
+    Raises:
+        click.UsageError: If an option is set that the mode ignores.
+    """
+    ignored_by_mode = {
+        "call": (
+            ("pre_indent_level", "--pre-indent-level"),
+            ("include_delimiters", "--include-delimiters"),
+        ),
+        "literal": (
+            ("call_function", "--call-function"),
+            ("call_params", "--call-params"),
+            ("per_element", "--per-element"),
+        ),
+    }
+    for name, flag in ignored_by_mode[mode]:
+        if _given_on_command_line(name=name):
+            raise click.UsageError(
+                message=f"{flag} has no effect in {mode} mode.",
+            )
 
 
 def literalize_input(
@@ -874,10 +914,16 @@ def main(
         raise click.UsageError(
             message="--modifier requires --variable-name.",
         )
+    elif _given_on_command_line(name="new_variable") and not new_variable:
+        raise click.UsageError(
+            message="--no-new-variable requires --variable-name.",
+        )
 
     resolved_ref_case = (
         _REF_CASE_MAP[ref_case.lower()] if ref_case is not None else None
     )
+
+    _reject_options_ignored_by_mode(mode=mode)
 
     if mode == "call":
         if call_function is None:
