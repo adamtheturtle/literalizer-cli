@@ -23,11 +23,11 @@ erlang
 Fortran
 fortran
 fsharp
-ghc
 getter
+ghc
 haskell
-haxe
 Haxe
+haxe
 hcl
 Homebrew
 ieee
@@ -66,8 +66,8 @@ ocaml
 occam
 odin
 otp
-paren
 params
+paren
 perl
 php
 powershell
@@ -91,6 +91,7 @@ tcl
 toml
 traceback
 tracebacks
+UsageError
 utf
 utf8
 vec
