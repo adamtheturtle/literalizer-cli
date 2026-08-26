@@ -2285,3 +2285,37 @@ def test_default_valued_options_are_not_rejected() -> None:
     )
     assert result.exit_code == 0, (result.stdout, result.stderr)
     assert result.output == "f(x=1)\n"
+
+
+@pytest.mark.parametrize(
+    argnames="call_params",
+    argvalues=["", "   ", ",,", " , , "],
+    ids=["empty", "whitespace", "commas", "commas-and-spaces"],
+)
+def test_call_params_naming_nothing_is_rejected(call_params: str) -> None:
+    """A value that names no parameter is reported as such.
+
+    Falling through left the arity check to say "Expected 0 parameters but
+    got 1 values", which describes the consequence rather than the mistake.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--mode",
+            "call",
+            "--call-function",
+            "f",
+            "--call-params",
+            call_params,
+        ],
+        input="[[1]]\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert "--call-params must name at least one parameter." in result.output
