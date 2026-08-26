@@ -42,6 +42,8 @@ _INPUT_FORMAT_MAP: dict[str, InputFormat] = {
 }
 
 _INDENT = "    "
+_MAX_PRE_INDENT_LEVEL = 100
+"""Upper bound on ``--pre-indent-level``."""
 
 _REF_CASE_MAP: dict[str, IdentifierCase] = {
     member.name.lower(): member for member in IdentifierCase
@@ -352,6 +354,62 @@ def _resolve_language_option(
     return enum_cls[upper_value]
 
 
+def _validate_indent(
+    context: click.Context,
+    parameter: click.Parameter,
+    value: str,
+) -> str:
+    """Reject indents that would emit malformed source.
+
+    An empty indent flattens nested output so the structure is lost, and an
+    indent holding a line break splits one logical line across several.
+
+    Args:
+        context: The click context. Unused.
+        parameter: The parameter being validated. Unused.
+        value: The indent string.
+
+    Returns:
+        The indent string.
+
+    Raises:
+        click.BadParameter: If the indent is empty or spans lines.
+    """
+    del context, parameter
+    if not value:
+        msg = "--indent cannot be empty."
+        raise click.BadParameter(message=msg)
+    if "\n" in value or "\r" in value:
+        msg = "--indent cannot contain a line break."
+        raise click.BadParameter(message=msg)
+    return value
+
+
+def _validate_ref_key(
+    context: click.Context,
+    parameter: click.Parameter,
+    value: str,
+) -> str:
+    """Reject a ref key that could never match a mapping key.
+
+    Args:
+        context: The click context. Unused.
+        parameter: The parameter being validated. Unused.
+        value: The ref key.
+
+    Returns:
+        The ref key.
+
+    Raises:
+        click.BadParameter: If the key is empty or only whitespace.
+    """
+    del context, parameter
+    if not value.strip():
+        msg = "--ref-key cannot be empty or whitespace."
+        raise click.BadParameter(message=msg)
+    return value
+
+
 def _given_on_command_line(*, name: str) -> bool:
     """Return whether an option was supplied rather than left at its
     default.
@@ -480,12 +538,15 @@ def literalize_call_input(
 @click.option(
     "--pre-indent-level",
     default=0,
-    type=int,
+    # Bounded because each level multiplies the indent string across every
+    # output line, so a large value turns a small input into a huge output.
+    type=click.IntRange(min=0, max=_MAX_PRE_INDENT_LEVEL),
     help="Number of indent levels to prefix each output line with.",
 )
 @click.option(
     "--indent",
     default=_INDENT,
+    callback=_validate_indent,
     help="Indentation string.",
 )
 @click.option(
@@ -746,6 +807,7 @@ def literalize_call_input(
     "--ref-key",
     default="$ref",
     show_default=True,
+    callback=_validate_ref_key,
     help=(
         "Marker key used to identify variable-reference mappings in the "
         "input data. A single-key dict whose key equals --ref-key and whose "
