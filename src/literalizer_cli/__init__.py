@@ -28,6 +28,25 @@ try:
 except PackageNotFoundError:  # pragma: no cover
     from ._setuptools_scm_version import __version__
 
+
+def _installed_literalizer_version() -> str:
+    """Return the installed ``literalizer`` version.
+
+    Returns:
+        The version, or ``"unknown"`` when the distribution is absent.
+    """
+    try:
+        return version(distribution_name="literalizer")
+    except PackageNotFoundError:  # pragma: no cover
+        return "unknown"
+
+
+# The rendering comes from literalizer, so the library version decides what
+# the output looks like. Reporting only the wrapper leaves that invisible.
+_VERSION_MESSAGE = (
+    f"%(prog)s %(version)s (literalizer {_installed_literalizer_version()})"
+)
+
 _LANGUAGE_MAP = {
     lang_cls.__name__.lower(): lang_cls for lang_cls in ALL_LANGUAGES
 }
@@ -296,6 +315,14 @@ def _resolve_modifiers(
                 f"--modifier is not supported for language '{lang_name}'."
             ),
         )
+    seen: set[str] = set()
+    for value in values:
+        lowered = value.lower()
+        if lowered in seen:
+            raise click.UsageError(
+                message=f"--modifier {value} is given more than once.",
+            )
+        seen.add(lowered)
     resolved: set[enum.Enum] = set()
     for value in values:
         upper_value = value.upper()
@@ -479,7 +506,7 @@ def literalize_input(
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
     except literalizer.exceptions.LiteralizerError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
+        raise click.ClickException(message=str(object=exc)) from exc
 
 
 def literalize_call_input(
@@ -516,11 +543,11 @@ def literalize_call_input(
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
     except literalizer.exceptions.LiteralizerError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
+        raise click.ClickException(message=str(object=exc)) from exc
 
 
 @click.command(name="literalize")
-@click.version_option(version=__version__)
+@click.version_option(version=__version__, message=_VERSION_MESSAGE)
 @click.option(
     "--language",
     "-l",
@@ -868,6 +895,14 @@ def main(
 ) -> None:
     """Convert data structures to native language literal syntax."""
     input_string = sys.stdin.read()
+    # Windows editors and some HTTP clients prefix a BOM. Every parser here
+    # reads text that is already decoded, so the mark is data to them and
+    # only ever a parse error.
+    input_string = input_string.removeprefix("\ufeff")
+    if not input_string.strip():
+        # JSON already refused empty input. YAML produced None and TOML an
+        # empty dict, so the same empty stdin gave three different answers.
+        raise click.UsageError(message="No input data on stdin.")
     lang_cls = _LANGUAGE_MAP[language]
 
     lang_kwargs: dict[str, object] = {}
@@ -950,7 +985,7 @@ def main(
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
     except literalizer.exceptions.LiteralizerError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
+        raise click.ClickException(message=str(object=exc)) from exc
 
     variable_form: VariableForm | None = None
     if variable_name is not None:
@@ -1031,6 +1066,14 @@ def main(
             ref_key=ref_key,
         )
     if include_preamble:
+        if not result.preamble:
+            click.echo(
+                message=(
+                    "Warning: --include-preamble was given but this output "
+                    "has no preamble."
+                ),
+                err=True,
+            )
         for preamble_line in result.preamble:
             click.echo(message=preamble_line)
     click.echo(message=result.code)

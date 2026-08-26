@@ -1,8 +1,10 @@
 """Tests for literalizer_cli."""
 
 import inspect
+import runpy
 import textwrap
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import literalizer.exceptions
@@ -2404,3 +2406,121 @@ def test_call_params_naming_nothing_is_rejected(call_params: str) -> None:
     )
     assert result.exit_code == _USAGE_ERROR_EXIT_CODE
     assert "--call-params must name at least one parameter." in result.output
+
+
+@pytest.mark.parametrize(
+    argnames="input_format",
+    argvalues=["json", "yaml", "toml"],
+)
+@pytest.mark.parametrize(
+    argnames="data",
+    argvalues=["", "   \n  "],
+    ids=["empty", "whitespace"],
+)
+def test_empty_input_is_rejected(input_format: str, data: str) -> None:
+    """Empty input is refused the same way whatever the format.
+
+    JSON already failed to parse it. YAML produced ``None`` and TOML an
+    empty dict, so the same empty stdin gave three different answers.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "-f", input_format],
+        input=data,
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert "No input data on stdin." in result.output
+
+
+@pytest.mark.parametrize(
+    argnames=("input_format", "data"),
+    argvalues=[
+        ("json", '﻿{"a": 1}\n'),
+        ("yaml", "﻿a: 1\n"),
+    ],
+    ids=["json", "yaml"],
+)
+def test_byte_order_mark_is_stripped(input_format: str, data: str) -> None:
+    """A leading BOM is a decoding artifact, not data.
+
+    Windows editors and some HTTP clients add one. The parsers here read
+    already-decoded text, so the mark reached them as content.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "-f", input_format],
+        input=data,
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert result.output == '{\n    "a": 1,\n}\n'
+
+
+def test_duplicate_modifier_is_rejected() -> None:
+    """A repeated modifier collapsed into the set with no feedback."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "java",
+            "--variable-name",
+            "x",
+            "--modifier",
+            "final",
+            "--modifier",
+            "final",
+        ],
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert "--modifier final is given more than once." in result.output
+
+
+def test_include_preamble_without_a_preamble_warns() -> None:
+    """Asking for a preamble that does not exist says so on stderr."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "--include-preamble"],
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert "has no preamble" in result.output
+
+
+def test_version_reports_the_library_too() -> None:
+    """The library decides what the output looks like, so name it."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--version"],
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert "(literalizer " in result.output
+
+
+def test_wrapper_does_not_run_on_import() -> None:
+    """The wrapper script only runs when executed.
+
+    Without a ``__main__`` guard, importing it ran the CLI, which reads
+    stdin and exits.
+    """
+    wrapper = Path(__file__).parent.parent / "bin" / "literalize-wrapper.py"
+    namespace = runpy.run_path(
+        path_name=str(object=wrapper),
+        run_name="not_main",
+    )
+
+    assert "main" in namespace
