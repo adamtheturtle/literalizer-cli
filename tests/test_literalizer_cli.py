@@ -2370,3 +2370,67 @@ def test_pre_indent_level_upper_bound_is_allowed() -> None:
         color=True,
     )
     assert result.exit_code == 0, (result.stdout, result.stderr)
+
+
+@pytest.mark.parametrize(
+    argnames="input_format",
+    argvalues=["json", "yaml", "toml"],
+)
+@pytest.mark.parametrize(
+    argnames="data",
+    argvalues=["", "   \n  "],
+    ids=["empty", "whitespace"],
+)
+def test_empty_input_is_rejected(input_format: str, data: str) -> None:
+    """Empty input is refused the same way whatever the format.
+
+    JSON already failed to parse it. YAML produced ``None`` and TOML an
+    empty dict, so the same empty stdin gave three different answers.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "-f", input_format],
+        input=data,
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert "No input data on stdin." in result.output
+
+
+def test_duplicate_modifier_is_rejected() -> None:
+    """A repeated modifier collapsed into the set with no feedback."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "java",
+            "--variable-name",
+            "x",
+            "--modifier",
+            "final",
+            "--modifier",
+            "final",
+        ],
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert "--modifier final is given more than once." in result.output
+
+
+def test_include_preamble_without_a_preamble_warns() -> None:
+    """Asking for a preamble that does not exist says so on stderr."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "--include-preamble"],
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert "has no preamble" in result.output
