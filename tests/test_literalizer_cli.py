@@ -2370,3 +2370,39 @@ def test_pre_indent_level_upper_bound_is_allowed() -> None:
         color=True,
     )
     assert result.exit_code == 0, (result.stdout, result.stderr)
+
+
+def test_version_reports_the_library_too() -> None:
+    """The library decides what the output looks like, so name it.
+
+    Reporting only the wrapper leaves the version that actually governs
+    rendering invisible.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["--version"],
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert "literalize " in result.output
+    assert "(literalizer " in result.output
+
+
+def test_library_error_keeps_its_cause() -> None:
+    """The originating exception stays attached for debugging.
+
+    ``from None`` discarded it, so a caller embedding the CLI saw only the
+    ``ClickException`` with no indication of what raised it.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "lua", "-f", "json"],
+        input="{}\n",
+        catch_exceptions=True,
+        color=True,
+    )
+    assert result.exit_code == 1
+    assert "Traceback" not in result.output

@@ -28,6 +28,25 @@ try:
 except PackageNotFoundError:  # pragma: no cover
     from ._setuptools_scm_version import __version__
 
+
+def _installed_literalizer_version() -> str:
+    """Return the installed ``literalizer`` version.
+
+    Returns:
+        The version, or ``"unknown"`` when the distribution is absent.
+    """
+    try:
+        return version(distribution_name="literalizer")
+    except PackageNotFoundError:  # pragma: no cover
+        return "unknown"
+
+
+_LITERALIZER_VERSION = _installed_literalizer_version()
+
+# The rendering comes from literalizer, so the library version decides what
+# the output looks like. Reporting only the wrapper leaves that invisible.
+_VERSION_MESSAGE = f"%(prog)s %(version)s (literalizer {_LITERALIZER_VERSION})"
+
 _LANGUAGE_MAP = {
     lang_cls.__name__.lower(): lang_cls for lang_cls in ALL_LANGUAGES
 }
@@ -479,7 +498,7 @@ def literalize_input(
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
     except literalizer.exceptions.LiteralizerError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
+        raise click.ClickException(message=str(object=exc)) from exc
 
 
 def literalize_call_input(
@@ -516,11 +535,11 @@ def literalize_call_input(
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
     except literalizer.exceptions.LiteralizerError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
+        raise click.ClickException(message=str(object=exc)) from exc
 
 
 @click.command(name="literalize")
-@click.version_option(version=__version__)
+@click.version_option(version=__version__, message=_VERSION_MESSAGE)
 @click.option(
     "--language",
     "-l",
@@ -950,7 +969,7 @@ def main(
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
     except literalizer.exceptions.LiteralizerError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
+        raise click.ClickException(message=str(object=exc)) from exc
 
     variable_form: VariableForm | None = None
     if variable_name is not None:
