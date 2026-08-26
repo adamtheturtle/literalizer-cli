@@ -17,9 +17,10 @@ import literalizer_cli
 from literalizer_cli import main
 
 _USAGE_ERROR_EXIT_CODE = 2
+"""Click's exit code for a ``UsageError``."""
+
 _MAX_PRE_INDENT_LEVEL = 100
 """Mirrors the bound on ``--pre-indent-level``."""
-"""Click's exit code for a ``UsageError``."""
 
 
 @dataclass(frozen=True, kw_only=True)

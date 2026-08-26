@@ -1,6 +1,8 @@
 ada
 ansi
+Args
 arity
+BadParameter
 booleans
 btree
 Changelog
@@ -85,6 +87,7 @@ sml
 stringified
 struct
 structs
+subclasses
 systemverilog
 Tcl
 tcl
@@ -96,5 +99,6 @@ utf
 utf8
 vec
 visualbasic
+whitespace
 winget
 zig
