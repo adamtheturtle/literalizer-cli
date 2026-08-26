@@ -999,6 +999,13 @@ def main(
         parsed_params = tuple(
             p.strip() for p in call_params.split(sep=",") if p.strip()
         )
+        if not parsed_params:
+            # Falling through leaves the arity check to report "Expected 0
+            # parameters but got N values", which describes the consequence
+            # rather than the mistake.
+            raise click.UsageError(
+                message="--call-params must name at least one parameter.",
+            )
         result = literalize_call_input(
             input_string=input_string,
             language=lang_instance,
