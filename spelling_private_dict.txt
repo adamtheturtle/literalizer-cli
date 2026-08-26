@@ -82,9 +82,12 @@ Roc
 roc
 scala
 sml
+stderr
+stdin
 stringified
 struct
 structs
+subclasses
 systemverilog
 Tcl
 tcl
