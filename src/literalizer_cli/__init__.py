@@ -6,6 +6,7 @@ import enum
 import sys
 from collections.abc import Callable
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 
 import click
 import literalizer.exceptions
@@ -27,6 +28,25 @@ try:
     __version__ = version(distribution_name="literalizer-cli")
 except PackageNotFoundError:  # pragma: no cover
     from ._setuptools_scm_version import __version__
+
+
+def _installed_literalizer_version() -> str:
+    """Return the installed ``literalizer`` version.
+
+    Returns:
+        The version, or ``"unknown"`` when the distribution is absent.
+    """
+    try:
+        return version(distribution_name="literalizer")
+    except PackageNotFoundError:  # pragma: no cover
+        return "unknown"
+
+
+# The rendering comes from literalizer, so the library version decides what
+# the output looks like. Reporting only the wrapper leaves that invisible.
+_VERSION_MESSAGE = (
+    f"%(prog)s %(version)s (literalizer {_installed_literalizer_version()})"
+)
 
 _LANGUAGE_MAP = {
     lang_cls.__name__.lower(): lang_cls for lang_cls in ALL_LANGUAGES
@@ -165,7 +185,13 @@ def _choices_help(label: str, option_name: str) -> str:
     choices = ", ".join(
         _all_choices_for_option(option_name=option_name),
     )
-    return f"{label} (language-specific). Choices: {choices}."
+    # --help renders before --language is parsed, so the list cannot be
+    # narrowed to the selected language. Say so rather than implying every
+    # value works everywhere; the option itself still validates per language.
+    return (
+        f"{label} (language-specific). Choices across all languages: "
+        f"{choices}. Not every language accepts every value."
+    )
 
 
 _SEQUENCE_FORMAT_HELP = _choices_help(
@@ -296,6 +322,14 @@ def _resolve_modifiers(
                 f"--modifier is not supported for language '{lang_name}'."
             ),
         )
+    seen: set[str] = set()
+    for value in values:
+        lowered = value.lower()
+        if lowered in seen:
+            raise click.UsageError(
+                message=f"--modifier {value} is given more than once.",
+            )
+        seen.add(lowered)
     resolved: set[enum.Enum] = set()
     for value in values:
         upper_value = value.upper()
@@ -479,7 +513,7 @@ def literalize_input(
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
     except literalizer.exceptions.LiteralizerError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
+        raise click.ClickException(message=str(object=exc)) from exc
 
 
 def literalize_call_input(
@@ -516,17 +550,28 @@ def literalize_call_input(
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
     except literalizer.exceptions.LiteralizerError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
+        raise click.ClickException(message=str(object=exc)) from exc
 
 
 @click.command(name="literalize")
-@click.version_option(version=__version__)
+@click.version_option(version=__version__, message=_VERSION_MESSAGE)
 @click.option(
     "--language",
     "-l",
     required=True,
     type=click.Choice(choices=sorted(_LANGUAGE_MAP), case_sensitive=False),
     help="Target language for output.",
+)
+@click.option(
+    "--input-file",
+    type=click.Path(
+        exists=True,
+        dir_okay=False,
+        readable=True,
+        path_type=Path,
+    ),
+    default=None,
+    help="Read input from this file instead of standard input.",
 )
 @click.option(
     "--input-format",
@@ -859,6 +904,7 @@ def main(
     heterogeneous_value_variant_name: str | None,
     multiline_raw_string_delimiter_base: str | None,
     include_preamble: bool,
+    input_file: Path | None,
     mode: str,
     call_function: str | None,
     call_params: str | None,
@@ -867,7 +913,22 @@ def main(
     ref_key: str,
 ) -> None:
     """Convert data structures to native language literal syntax."""
-    input_string = sys.stdin.read()
+    if input_file is None:
+        input_string = sys.stdin.read()
+        source_description = "stdin"
+    else:
+        input_string = input_file.read_text(encoding="utf-8")
+        source_description = str(object=input_file)
+    # Windows editors and some HTTP clients prefix a BOM. Every parser here
+    # reads text that is already decoded, so the mark is data to them and
+    # only ever a parse error.
+    input_string = input_string.removeprefix("\ufeff")
+    if not input_string.strip():
+        # JSON already refused empty input. YAML produced None and TOML an
+        # empty dict, so the same empty input gave three different answers.
+        raise click.UsageError(
+            message=f"No input data on {source_description}.",
+        )
     lang_cls = _LANGUAGE_MAP[language]
 
     lang_kwargs: dict[str, object] = {}
@@ -950,7 +1011,7 @@ def main(
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
     except literalizer.exceptions.LiteralizerError as exc:
-        raise click.ClickException(message=str(object=exc)) from None
+        raise click.ClickException(message=str(object=exc)) from exc
 
     variable_form: VariableForm | None = None
     if variable_name is not None:
@@ -1031,6 +1092,14 @@ def main(
             ref_key=ref_key,
         )
     if include_preamble:
+        if not result.preamble:
+            click.echo(
+                message=(
+                    "Warning: --include-preamble was given but this output "
+                    "has no preamble."
+                ),
+                err=True,
+            )
         for preamble_line in result.preamble:
             click.echo(message=preamble_line)
     click.echo(message=result.code)

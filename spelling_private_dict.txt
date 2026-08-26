@@ -3,6 +3,7 @@ ansi
 Args
 arity
 BadParameter
+BOM
 booleans
 btree
 Changelog
@@ -84,6 +85,8 @@ Roc
 roc
 scala
 sml
+stderr
+stdin
 stringified
 struct
 structs

@@ -6,6 +6,8 @@ Options:
   --version                       Show the version and exit.
   -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|forth|fortran|fsharp|gleam|go|groovy|haskell|haxe|hcl|java|javascript|json5|jsonnet|julia|kotlin|lua|matlab|mojo|nim|nix|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|roc|ruby|rust|scala|scheme|sml|swift|systemverilog|tcl|toml|typescript|v|visualbasic|wren|yaml|zig]
                                   Target language for output.  [required]
+  --input-file FILE               Read input from this file instead of standard
+                                  input.
   -f, --input-format [json|json5|yaml|toml]
                                   Input data format.
   --pre-indent-level INTEGER RANGE
@@ -22,89 +24,124 @@ Options:
                                   private, protected, public, readonly, static.
   --wrap-in-file / --no-wrap-in-file
                                   Wrap output as a complete, valid source file.
-  --sequence-format TEXT          Sequence format (language-specific). Choices:
-                                  array, cell_array, dynamic_array,
-                                  initializer_list, list, seq, sequence, slice,
-                                  table, tuple, vec, vector.
-  --set-format TEXT               Set format (language-specific). Choices:
-                                  array, btree_set, dict, frozenset, hash_set,
-                                  map_set, set, sorted_set, tree_set.
-  --date-format TEXT              Date format (language-specific). Choices:
-                                  clojure, cpp, crystal, csharp, dart, elixir,
-                                  erlang, fsharp, go, groovy, haskell, iso,
-                                  java, js, julia, kotlin, lua, matlab, nim,
-                                  objc, ocaml, perl, php, powershell, python, r,
-                                  racket, raku, ruby, rust, scala, sml, swift,
-                                  toml, visual_basic, yaml, zig.
-  --datetime-format TEXT          Datetime format (language-specific). Choices:
-                                  cpp, csharp, dart, elixir, epoch, erlang,
-                                  fsharp, go, haskell, instant, iso, js, julia,
-                                  kotlin, lua, matlab, nim, objc, ocaml, perl,
-                                  php, python, r, raku, ruby, rust, scala, sml,
-                                  swift, toml, yaml, zoned.
-  --bytes-format TEXT             Bytes format (language-specific). Choices:
-                                  base64, binary, hex, python.
-  --comment-format TEXT           Comment format (language-specific). Choices:
-                                  apostrophe, backslash, block, double_dash,
-                                  double_slash, exclamation, hash, line, paren,
-                                  paren_star, percent, semicolon, slash,
-                                  star_angle.
+  --sequence-format TEXT          Sequence format (language-specific). Choices
+                                  across all languages: array, cell_array,
+                                  dynamic_array, initializer_list, list, seq,
+                                  sequence, slice, table, tuple, vec, vector.
+                                  Not every language accepts every value.
+  --set-format TEXT               Set format (language-specific). Choices across
+                                  all languages: array, btree_set, dict,
+                                  frozenset, hash_set, map_set, set, sorted_set,
+                                  tree_set. Not every language accepts every
+                                  value.
+  --date-format TEXT              Date format (language-specific). Choices
+                                  across all languages: clojure, cpp, crystal,
+                                  csharp, dart, elixir, erlang, fsharp, go,
+                                  groovy, haskell, iso, java, js, julia, kotlin,
+                                  lua, matlab, nim, objc, ocaml, perl, php,
+                                  powershell, python, r, racket, raku, ruby,
+                                  rust, scala, sml, swift, toml, visual_basic,
+                                  yaml, zig. Not every language accepts every
+                                  value.
+  --datetime-format TEXT          Datetime format (language-specific). Choices
+                                  across all languages: cpp, csharp, dart,
+                                  elixir, epoch, erlang, fsharp, go, haskell,
+                                  instant, iso, js, julia, kotlin, lua, matlab,
+                                  nim, objc, ocaml, perl, php, python, r, raku,
+                                  ruby, rust, scala, sml, swift, toml, yaml,
+                                  zoned. Not every language accepts every value.
+  --bytes-format TEXT             Bytes format (language-specific). Choices
+                                  across all languages: base64, binary, hex,
+                                  python. Not every language accepts every
+                                  value.
+  --comment-format TEXT           Comment format (language-specific). Choices
+                                  across all languages: apostrophe, backslash,
+                                  block, double_dash, double_slash, exclamation,
+                                  hash, line, paren, paren_star, percent,
+                                  semicolon, slash, star_angle. Not every
+                                  language accepts every value.
   --variable-type-hints TEXT      Variable type hints (language-specific).
-                                  Choices: always, never, safe.
-  --declaration-style TEXT        Declaration style (language-specific).
-                                  Choices: assign, auto, block, colon, const,
-                                  declare, def, define, defparameter, dim,
-                                  final, lazy_static, let, let_mut, let_mutable,
-                                  local, mut, my, set, short, static, typed,
-                                  val, var.
-  --dict-entry-style TEXT         Dict entry style (language-specific). Choices:
-                                  default, rocket, symbol.
-  --dict-format TEXT              Dict format (language-specific). Choices:
-                                  btree_map, containers_map, default, dict,
-                                  dictionary, hash_map, list_map, map,
-                                  map_of_entries, object, ordered,
-                                  sorted_dictionary, struct, unordered_map.
-  --float-format TEXT             Float format (language-specific). Choices:
-                                  fixed, repr, scientific.
-  --integer-format TEXT           Integer format (language-specific). Choices:
-                                  binary, decimal, hex, octal, octal_c_style.
+                                  Choices across all languages: always, never,
+                                  safe. Not every language accepts every value.
+  --declaration-style TEXT        Declaration style (language-specific). Choices
+                                  across all languages: assign, auto, block,
+                                  colon, const, declare, def, define,
+                                  defparameter, dim, final, lazy_static, let,
+                                  let_mut, let_mutable, local, mut, my, set,
+                                  short, static, typed, val, var. Not every
+                                  language accepts every value.
+  --dict-entry-style TEXT         Dict entry style (language-specific). Choices
+                                  across all languages: default, rocket, symbol.
+                                  Not every language accepts every value.
+  --dict-format TEXT              Dict format (language-specific). Choices
+                                  across all languages: btree_map,
+                                  containers_map, default, dict, dictionary,
+                                  hash_map, list_map, map, map_of_entries,
+                                  object, ordered, sorted_dictionary, struct,
+                                  unordered_map. Not every language accepts
+                                  every value.
+  --float-format TEXT             Float format (language-specific). Choices
+                                  across all languages: fixed, repr, scientific.
+                                  Not every language accepts every value.
+  --integer-format TEXT           Integer format (language-specific). Choices
+                                  across all languages: binary, decimal, hex,
+                                  octal, octal_c_style. Not every language
+                                  accepts every value.
   --numeric-literal-suffix TEXT   Numeric literal suffix (language-specific).
-                                  Choices: auto, none.
-  --numeric-separator TEXT        Numeric separator (language-specific).
-                                  Choices: none, underscore.
-  --string-format TEXT            String format (language-specific). Choices:
-                                  double, double_utf8, escaped, explicit,
-                                  multiline, raw, single, verbatim.
-  --trailing-comma TEXT           Trailing comma (language-specific). Choices:
-                                  no, yes.
+                                  Choices across all languages: auto, none. Not
+                                  every language accepts every value.
+  --numeric-separator TEXT        Numeric separator (language-specific). Choices
+                                  across all languages: none, underscore. Not
+                                  every language accepts every value.
+  --string-format TEXT            String format (language-specific). Choices
+                                  across all languages: double, double_utf8,
+                                  escaped, explicit, multiline, raw, single,
+                                  verbatim. Not every language accepts every
+                                  value.
+  --trailing-comma TEXT           Trailing comma (language-specific). Choices
+                                  across all languages: no, yes. Not every
+                                  language accepts every value.
   --empty-dict-key TEXT           Empty dict key handling (language-specific).
-                                  Choices: error, positional.
+                                  Choices across all languages: error,
+                                  positional. Not every language accepts every
+                                  value.
   --statement-terminator-style TEXT
                                   Statement terminator style (language-
-                                  specific). Choices: newline, none, semicolon.
+                                  specific). Choices across all languages:
+                                  newline, none, semicolon. Not every language
+                                  accepts every value.
   --heterogeneous-strategy TEXT   Heterogeneous-collection strategy (language-
-                                  specific). Choices: error, interface,
-                                  object_variant, record, tagged_enum, tuple,
-                                  union_type, variant.
-  --call-style TEXT               Call style (language-specific). Choices:
-                                  command, curried, keyword, named, object,
-                                  positional, prefix, prefix_keyword.
-  --numeric-style TEXT            Numeric style (language-specific). Choices:
-                                  explicit, overloaded.
+                                  specific). Choices across all languages:
+                                  error, interface, object_variant, record,
+                                  tagged_enum, tuple, union_type, variant. Not
+                                  every language accepts every value.
+  --call-style TEXT               Call style (language-specific). Choices across
+                                  all languages: command, curried, keyword,
+                                  named, object, positional, prefix,
+                                  prefix_keyword. Not every language accepts
+                                  every value.
+  --numeric-style TEXT            Numeric style (language-specific). Choices
+                                  across all languages: explicit, overloaded.
+                                  Not every language accepts every value.
   --language-version TEXT         Target language version (language-specific).
-                                  Choices: ada_2022, ans, ansi, c99, cpp14,
-                                  cpp17, cpp20, dev_2024, dotnet_6,
-                                  edition_2021, es2015, ghc2021, ieee_1800_2017,
-                                  jdk_11, jdk_16, otp_25, py38, py39, r2022a,
-                                  r7rs, sml_97, v0, v0_12, v0_14, v0_15, v0_19,
-                                  v0_20, v0_4, v1, v10, v17, v1_11, v1_14,
-                                  v1_18, v1_2, v1_9, v2, v2002, v2003, v2008,
-                                  v24_5, v3, v4, v5, v5_1, v5_36, v5_4, v5_9,
-                                  v6d, v7, v8, v8_1, v8_6.
+                                  Choices across all languages: ada_2022, ans,
+                                  ansi, c99, cpp14, cpp17, cpp20, dev_2024,
+                                  dotnet_6, edition_2021, es2015, ghc2021,
+                                  ieee_1800_2017, jdk_11, jdk_16, otp_25, py38,
+                                  py39, r2022a, r7rs, sml_97, v0, v0_12, v0_14,
+                                  v0_15, v0_19, v0_20, v0_4, v1, v10, v17,
+                                  v1_11, v1_14, v1_18, v1_2, v1_9, v2, v2002,
+                                  v2003, v2008, v24_5, v3, v4, v5, v5_1, v5_36,
+                                  v5_4, v5_9, v6d, v7, v8, v8_1, v8_6. Not every
+                                  language accepts every value.
   --annotation-evaluation TEXT    Annotation evaluation (language-specific).
-                                  Choices: eager, postponed.
+                                  Choices across all languages: eager,
+                                  postponed. Not every language accepts every
+                                  value.
   --union-format TEXT             Union annotation format (language-specific).
-                                  Choices: auto, pipe, typing.
+                                  Choices across all languages: auto, pipe,
+                                  typing. Not every language accepts every
+                                  value.
   --module-name TEXT              Module/namespace name for languages whose
                                   wrap-in-file form introduces a named scope
                                   (e.g. C, C++, D, Erlang, Fortran, F#, Java,
