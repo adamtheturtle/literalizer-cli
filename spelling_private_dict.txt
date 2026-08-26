@@ -84,6 +84,8 @@ Roc
 roc
 scala
 sml
+stderr
+stdin
 stringified
 struct
 structs

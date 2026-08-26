@@ -296,6 +296,14 @@ def _resolve_modifiers(
                 f"--modifier is not supported for language '{lang_name}'."
             ),
         )
+    seen: set[str] = set()
+    for value in values:
+        lowered = value.lower()
+        if lowered in seen:
+            raise click.UsageError(
+                message=f"--modifier {value} is given more than once.",
+            )
+        seen.add(lowered)
     resolved: set[enum.Enum] = set()
     for value in values:
         upper_value = value.upper()
@@ -868,6 +876,10 @@ def main(
 ) -> None:
     """Convert data structures to native language literal syntax."""
     input_string = sys.stdin.read()
+    if not input_string.strip():
+        # JSON already refused empty input. YAML produced None and TOML an
+        # empty dict, so the same empty stdin gave three different answers.
+        raise click.UsageError(message="No input data on stdin.")
     lang_cls = _LANGUAGE_MAP[language]
 
     lang_kwargs: dict[str, object] = {}
@@ -1031,6 +1043,14 @@ def main(
             ref_key=ref_key,
         )
     if include_preamble:
+        if not result.preamble:
+            click.echo(
+                message=(
+                    "Warning: --include-preamble was given but this output "
+                    "has no preamble."
+                ),
+                err=True,
+            )
         for preamble_line in result.preamble:
             click.echo(message=preamble_line)
     click.echo(message=result.code)
