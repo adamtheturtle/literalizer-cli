@@ -8,8 +8,9 @@ Options:
                                   Target language for output.  [required]
   -f, --input-format [json|json5|yaml|toml]
                                   Input data format.
-  --pre-indent-level INTEGER      Number of indent levels to prefix each output
-                                  line with.
+  --pre-indent-level INTEGER RANGE
+                                  Number of indent levels to prefix each output
+                                  line with.  [0<=x<=100]
   --indent TEXT                   Indentation string.
   --include-delimiters / --no-include-delimiters
                                   Include opening/closing delimiters.

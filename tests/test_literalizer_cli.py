@@ -19,6 +19,9 @@ from literalizer_cli import main
 _USAGE_ERROR_EXIT_CODE = 2
 """Click's exit code for a ``UsageError``."""
 
+_MAX_PRE_INDENT_LEVEL = 100
+"""Mirrors the bound on ``--pre-indent-level``."""
+
 
 @dataclass(frozen=True, kw_only=True)
 class ExceptionCase:
@@ -2285,3 +2288,85 @@ def test_default_valued_options_are_not_rejected() -> None:
     )
     assert result.exit_code == 0, (result.stdout, result.stderr)
     assert result.output == "f(x=1)\n"
+
+
+@pytest.mark.parametrize(
+    argnames=("args", "expected"),
+    argvalues=[
+        pytest.param(
+            ["--indent", ""],
+            "--indent cannot be empty.",
+            id="empty-indent",
+        ),
+        pytest.param(
+            ["--indent", "\n"],
+            "--indent cannot contain a line break.",
+            id="newline-indent",
+        ),
+        pytest.param(
+            ["--indent", "\r"],
+            "--indent cannot contain a line break.",
+            id="carriage-return-indent",
+        ),
+        pytest.param(
+            ["--ref-key", ""],
+            "--ref-key cannot be empty or whitespace.",
+            id="empty-ref-key",
+        ),
+        pytest.param(
+            ["--ref-key", "   "],
+            "--ref-key cannot be empty or whitespace.",
+            id="whitespace-ref-key",
+        ),
+    ],
+)
+def test_formatting_options_rejected(args: list[str], expected: str) -> None:
+    """Values that would emit malformed output are refused."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", *args],
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert expected in result.output
+
+
+@pytest.mark.parametrize(
+    argnames="level",
+    argvalues=["-1", "101", "100000"],
+    ids=["negative", "just-over-maximum", "huge"],
+)
+def test_pre_indent_level_is_bounded(level: str) -> None:
+    """Each level repeats the indent on every line, so the range is
+    bounded.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=["-l", "python", "--pre-indent-level", level],
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+
+
+def test_pre_indent_level_upper_bound_is_allowed() -> None:
+    """The bound itself is a valid value."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "--pre-indent-level",
+            str(object=_MAX_PRE_INDENT_LEVEL),
+        ],
+        input="a: 1\n",
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
