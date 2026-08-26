@@ -2524,3 +2524,67 @@ def test_wrapper_does_not_run_on_import() -> None:
     )
 
     assert "main" in namespace
+
+
+def test_input_file_is_read_instead_of_stdin(tmp_path: Path) -> None:
+    """Input can come from a path, which is awkward to pipe on Windows."""
+    source = tmp_path / "data.json"
+    source.write_text(data='{"a": 1}', encoding="utf-8")
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--input-file",
+            str(object=source),
+        ],
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == 0, (result.stdout, result.stderr)
+    assert result.output == '{\n    "a": 1,\n}\n'
+
+
+def test_empty_input_file_names_the_file(tmp_path: Path) -> None:
+    """The message points at the file, not at stdin."""
+    source = tmp_path / "empty.json"
+    source.write_text(data="", encoding="utf-8")
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--input-file",
+            str(object=source),
+        ],
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert f"No input data on {source}." in result.output
+
+
+def test_missing_input_file_is_rejected(tmp_path: Path) -> None:
+    """A path that does not exist fails before anything is read."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            "json",
+            "--input-file",
+            str(object=tmp_path / "absent.json"),
+        ],
+        catch_exceptions=False,
+        color=True,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert "does not exist" in result.output

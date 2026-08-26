@@ -6,6 +6,7 @@ import enum
 import sys
 from collections.abc import Callable
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 
 import click
 import literalizer.exceptions
@@ -184,7 +185,13 @@ def _choices_help(label: str, option_name: str) -> str:
     choices = ", ".join(
         _all_choices_for_option(option_name=option_name),
     )
-    return f"{label} (language-specific). Choices: {choices}."
+    # --help renders before --language is parsed, so the list cannot be
+    # narrowed to the selected language. Say so rather than implying every
+    # value works everywhere; the option itself still validates per language.
+    return (
+        f"{label} (language-specific). Choices across all languages: "
+        f"{choices}. Not every language accepts every value."
+    )
 
 
 _SEQUENCE_FORMAT_HELP = _choices_help(
@@ -556,6 +563,17 @@ def literalize_call_input(
     help="Target language for output.",
 )
 @click.option(
+    "--input-file",
+    type=click.Path(
+        exists=True,
+        dir_okay=False,
+        readable=True,
+        path_type=Path,
+    ),
+    default=None,
+    help="Read input from this file instead of standard input.",
+)
+@click.option(
     "--input-format",
     "-f",
     default="yaml",
@@ -886,6 +904,7 @@ def main(
     heterogeneous_value_variant_name: str | None,
     multiline_raw_string_delimiter_base: str | None,
     include_preamble: bool,
+    input_file: Path | None,
     mode: str,
     call_function: str | None,
     call_params: str | None,
@@ -894,15 +913,22 @@ def main(
     ref_key: str,
 ) -> None:
     """Convert data structures to native language literal syntax."""
-    input_string = sys.stdin.read()
+    if input_file is None:
+        input_string = sys.stdin.read()
+        source_description = "stdin"
+    else:
+        input_string = input_file.read_text(encoding="utf-8")
+        source_description = str(object=input_file)
     # Windows editors and some HTTP clients prefix a BOM. Every parser here
     # reads text that is already decoded, so the mark is data to them and
     # only ever a parse error.
     input_string = input_string.removeprefix("\ufeff")
     if not input_string.strip():
         # JSON already refused empty input. YAML produced None and TOML an
-        # empty dict, so the same empty stdin gave three different answers.
-        raise click.UsageError(message="No input data on stdin.")
+        # empty dict, so the same empty input gave three different answers.
+        raise click.UsageError(
+            message=f"No input data on {source_description}.",
+        )
     lang_cls = _LANGUAGE_MAP[language]
 
     lang_kwargs: dict[str, object] = {}
