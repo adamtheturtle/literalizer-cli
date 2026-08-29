@@ -83,12 +83,6 @@ Pre-built macOS (ARM) binaries
    $ curl --fail -L https://github.com/adamtheturtle/literalizer-cli/releases/download/2026.08.16.1/literalize-macos -o /usr/local/bin/literalize &&
        chmod +x /usr/local/bin/literalize
 
-You may need to remove the quarantine attribute to run the binary:
-
-.. code-block:: console
-
-   $ xattr -d com.apple.quarantine /usr/local/bin/literalize
-
 Pre-built Windows binaries
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 

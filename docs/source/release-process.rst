@@ -10,6 +10,38 @@ Outcomes
 * An updated Nix flake (automatically uses the latest ``git`` tag).
 * New pre-built binaries for Linux, macOS, and Windows.
 
+Repository secrets
+~~~~~~~~~~~~~~~~~~
+
+The release workflow signs and notarizes the macOS binary, which needs five repository secrets.
+Setting them is a one-off, repeated when the signing certificate expires.
+Binaries signed and notarized before an expiry keep working afterwards, because ``--timestamp`` records that the signature was made while the certificate was valid; only new signatures need a renewed certificate.
+
+Signing certificate
+^^^^^^^^^^^^^^^^^^^
+
+``DEVELOPER_ID_APP_CERT_P12_BASE64`` is a ``base64`` encoded PKCS#12 export of a Developer ID Application certificate and its private key.
+The export must contain exactly one such identity: the workflow stops rather than guess which one to sign with.
+``DEVELOPER_ID_APP_CERT_PASSWORD`` is the password that the export is encrypted with.
+
+.. code-block:: console
+
+   $ base64 -i certificate.p12 | gh secret set DEVELOPER_ID_APP_CERT_P12_BASE64
+   $ gh secret set DEVELOPER_ID_APP_CERT_PASSWORD
+
+Notarization credentials
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+``notarytool`` authenticates with an App Store Connect API key that has the Developer role and belongs to the same team as the signing certificate.
+Create one under `Users and Access <https://appstoreconnect.apple.com/access/integrations/api>`_, which shows the key ID and the issuer ID.
+The ``.p8`` file downloads once and cannot be downloaded again.
+
+.. code-block:: console
+
+   $ base64 -i AuthKey_XXXXXXXXXX.p8 | gh secret set ASC_KEY
+   $ gh secret set ASC_KEY_ID
+   $ gh secret set ASC_ISSUER_ID
+
 Perform a Release
 ~~~~~~~~~~~~~~~~~
 

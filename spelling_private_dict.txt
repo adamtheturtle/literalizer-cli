@@ -71,6 +71,7 @@ odin
 otp
 params
 paren
+parsers
 perl
 php
 powershell
