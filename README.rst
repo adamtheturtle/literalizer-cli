@@ -83,11 +83,8 @@ Pre-built macOS (ARM) binaries
    $ curl --fail -L https://github.com/adamtheturtle/literalizer-cli/releases/download/2026.08.16.1/literalize-macos -o /usr/local/bin/literalize &&
        chmod +x /usr/local/bin/literalize
 
-You may need to remove the quarantine attribute to run the binary:
-
-.. code-block:: console
-
-   $ xattr -d com.apple.quarantine /usr/local/bin/literalize
+The binary is signed with a Developer ID certificate and notarized, so Gatekeeper allows it.
+The notarization ticket is not stapled to the binary, so the first run of a binary downloaded in a browser needs an internet connection.
 
 Pre-built Windows binaries
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -11,6 +11,16 @@ on:
         required: true
       HOMEBREW_TAP_GITHUB_TOKEN:
         required: true
+      DEVELOPER_ID_APP_CERT_P12_BASE64:
+        required: true
+      DEVELOPER_ID_APP_CERT_PASSWORD:
+        required: true
+      ASC_KEY:
+        required: true
+      ASC_KEY_ID:
+        required: true
+      ASC_ISSUER_ID:
+        required: true
 
 jobs:
   build:
@@ -344,6 +354,149 @@ jobs:
           options: --onefile, --name "literalize-macos"
           upload_exe_with_name: literalize-macos
           clean_checkout: false
+
+      # PyInstaller ad-hoc signs the binary, which is enough to run it
+      # locally but not enough for Gatekeeper, which blocks anything
+      # carrying ``com.apple.quarantine`` - the attribute a browser sets on
+      # a downloaded file.  A Developer ID signature plus notarization
+      # clears that.
+      # The secret names match those in the CoderPadMCP and HackerRankMCP
+      # repositories, which sign and notarize with the same certificate and
+      # the same App Store Connect key.
+      - name: Import the Developer ID certificate
+        env:
+          DEVELOPER_ID_APP_CERT_P12_BASE64: ${{ secrets.DEVELOPER_ID_APP_CERT_P12_BASE64 }}
+          DEVELOPER_ID_APP_CERT_PASSWORD: ${{ secrets.DEVELOPER_ID_APP_CERT_PASSWORD }}
+        run: |
+          if [ -z "${DEVELOPER_ID_APP_CERT_P12_BASE64}" ] || [ -z "${DEVELOPER_ID_APP_CERT_PASSWORD}" ]; then
+              echo "Set the DEVELOPER_ID_APP_CERT_P12_BASE64 and DEVELOPER_ID_APP_CERT_PASSWORD repository secrets; see docs/source/release-process.rst."
+              exit 1
+          fi
+          keychain_password="$(openssl rand -hex 24)"
+          security create-keychain -p "${keychain_password}" "${RUNNER_TEMP}/signing.keychain-db"
+          # Without this the keychain re-locks after a period of inactivity
+          # and signing then fails.
+          security set-keychain-settings -lut 21600 "${RUNNER_TEMP}/signing.keychain-db"
+          security unlock-keychain -p "${keychain_password}" "${RUNNER_TEMP}/signing.keychain-db"
+          # ``codesign`` looks for identities in the keychain search list.
+          security list-keychains -d user -s "${RUNNER_TEMP}/signing.keychain-db"
+          trap 'rm -f "${RUNNER_TEMP}/certificate.p12"' EXIT
+          (
+              umask 077
+              printf '%s' "${DEVELOPER_ID_APP_CERT_P12_BASE64}" | base64 --decode > "${RUNNER_TEMP}/certificate.p12"
+          )
+          security import "${RUNNER_TEMP}/certificate.p12" \
+              -k "${RUNNER_TEMP}/signing.keychain-db" \
+              -P "${DEVELOPER_ID_APP_CERT_PASSWORD}" \
+              -T /usr/bin/codesign
+          # Without this, ``codesign`` blocks on a GUI prompt for
+          # permission to use the imported key.
+          security set-key-partition-list \
+              -S apple-tool:,apple:,codesign: \
+              -s \
+              -k "${keychain_password}" \
+              "${RUNNER_TEMP}/signing.keychain-db" > /dev/null
+
+      - name: Sign the macOS binary
+        run: |
+          # Match on the certificate type rather than the owner name, which
+          # changes when the certificate is renewed.  Take the hash rather
+          # than the full name so that signing fails loudly here if the
+          # keychain somehow holds more than one Developer ID identity.
+          identity="$(security find-identity -v -p codesigning "${RUNNER_TEMP}/signing.keychain-db" | grep 'Developer ID Application' | awk '{ print $2 }')"
+          if [ "$(echo "${identity}" | wc -w)" -ne 1 ]; then
+              echo "Expected exactly one Developer ID Application identity, got: ${identity}"
+              exit 1
+          fi
+          # A secure timestamp and the hardened runtime are both
+          # prerequisites for notarization.  The hardened runtime needs the
+          # entitlements file to leave a ``--onefile`` binary runnable; see
+          # the comments in that file.
+          codesign \
+              --force \
+              --timestamp \
+              --options runtime \
+              --entitlements bin/entitlements.plist \
+              --sign "${identity}" \
+              --keychain "${RUNNER_TEMP}/signing.keychain-db" \
+              dist/literalize-macos
+          codesign --verify --strict --verbose=2 dist/literalize-macos
+
+      # Signing a ``--onefile`` binary with the hardened runtime can leave
+      # it unable to load its own bundled libraries, and nothing before
+      # this point would notice.
+      - name: Check the signed binary still runs
+        run: |
+          dist/literalize-macos --version
+          echo '{"a": 1}' | dist/literalize-macos --language python
+
+      # A notarization ticket cannot be stapled to a bare Mach-O
+      # executable - ``stapler`` handles only ``.app`` bundles, ``.dmg``,
+      # ``.pkg`` and kexts - so Gatekeeper verifies this binary online.
+      # Shipping a ``.pkg`` instead would allow stapling, at the cost of
+      # the documented ``curl ... && chmod +x`` one-liner.
+      - name: Notarize the macOS binary
+        env:
+          ASC_KEY: ${{ secrets.ASC_KEY }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          if [ -z "${ASC_KEY}" ] || [ -z "${ASC_KEY_ID}" ] || [ -z "${ASC_ISSUER_ID}" ]; then
+              echo "Set the ASC_KEY, ASC_KEY_ID and ASC_ISSUER_ID repository secrets; see docs/source/release-process.rst."
+              exit 1
+          fi
+          trap 'rm -f "${RUNNER_TEMP}/asc-api-key.p8"' EXIT
+          (
+              umask 077
+              printf '%s' "${ASC_KEY}" | base64 --decode > "${RUNNER_TEMP}/asc-api-key.p8"
+          )
+          # ``notarytool`` takes an archive, not a bare executable.
+          # ``--sequesterRsrc`` keeps extended attributes out of the archive
+          # as stray ``._`` entries, which is what Apple documents for
+          # notarization archives.
+          ditto -c -k --sequesterRsrc dist/literalize-macos literalize-macos.zip
+          set +e
+          submission_output="$(
+              xcrun notarytool submit literalize-macos.zip \
+                  --key "${RUNNER_TEMP}/asc-api-key.p8" \
+                  --key-id "${ASC_KEY_ID}" \
+                  --issuer "${ASC_ISSUER_ID}" \
+                  --wait \
+                  --timeout 30m 2>&1
+          )"
+          set -e
+          echo "${submission_output}"
+          # ``notarytool`` does not reliably exit non-zero on a rejected
+          # submission, so check the reported status.  On a rejection the
+          # log holds the reason, which the submission output does not.
+          if ! echo "${submission_output}" | grep -q 'status: Accepted'; then
+              submission_id="$(echo "${submission_output}" | awk '/^[[:space:]]*id:/ { print $2; exit }')"
+              if [ -n "${submission_id}" ]; then
+                  xcrun notarytool log "${submission_id}" \
+                      --key "${RUNNER_TEMP}/asc-api-key.p8" \
+                      --key-id "${ASC_KEY_ID}" \
+                      --issuer "${ASC_ISSUER_ID}" || true
+              fi
+              exit 1
+          fi
+
+      # This is the check that a user downloading the binary in a browser
+      # would run into.  It asks Apple's servers about the ticket, exactly
+      # as Gatekeeper does, so it fails ("source=Unnotarized Developer ID",
+      # exit status 3) if notarization did not take effect.  Retried
+      # because it depends on a freshly published ticket.
+      - name: Check Gatekeeper accepts the binary
+        uses: nick-fields/retry@v4
+        with:
+          timeout_seconds: 60
+          max_attempts: 10
+          retry_wait_seconds: 30
+          command: spctl --assess --type exec -vv dist/literalize-macos
+
+      - name: Delete the signing keychain
+        if: always()
+        run: |
+          security delete-keychain "${RUNNER_TEMP}/signing.keychain-db" || true
 
       - name: Upload macOS binary to release
         env:

@@ -42,6 +42,7 @@ js
 json
 jsonnet
 julia
+keychain
 kotlin
 kwargs
 langs
@@ -71,6 +72,7 @@ odin
 otp
 params
 paren
+parsers
 perl
 php
 powershell
