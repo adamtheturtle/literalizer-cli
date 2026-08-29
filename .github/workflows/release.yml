@@ -374,8 +374,11 @@ jobs:
       - name: Sign the macOS binary
         run: |
           # ``--sign`` takes a name prefix, and matches the one Developer ID
-          # identity in the keychain the previous step made.  It fails with
-          # "ambiguous" if more than one matches, so this needs no lookup.
+          # identity in the keychain the previous step added to the search
+          # list.  It fails with "ambiguous" if more than one matches, so
+          # this needs no lookup.  There is deliberately no ``--keychain``:
+          # that flag silently falls back to the search list when it cannot
+          # resolve what it is given, so it constrains nothing.
           #
           # A secure timestamp and the hardened runtime are both
           # prerequisites for notarization.  The hardened runtime needs the
@@ -387,7 +390,6 @@ jobs:
               --options runtime \
               --entitlements bin/entitlements.plist \
               --sign "Developer ID Application" \
-              --keychain signing_temp.keychain \
               dist/literalize-macos
           codesign --verify --strict --verbose=2 dist/literalize-macos
 
