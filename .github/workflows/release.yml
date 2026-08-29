@@ -360,11 +360,10 @@ jobs:
       # carrying ``com.apple.quarantine`` - the attribute a browser sets on
       # a downloaded file.  A Developer ID signature plus notarization
       # clears that.
-      # This creates a temporary ``signing_temp.keychain``, imports the
-      # certificate into it, and deletes the keychain again in its post
-      # step, so no cleanup step is needed here.  Pinned to a commit rather
-      # than a tag because it handles the signing certificate and its
-      # password.
+      #
+      # This action deletes its temporary keychain in a post step, so no
+      # cleanup step is needed.  It is pinned to a commit rather than a tag
+      # because it handles the certificate and its password.
       - name: Import the Developer ID certificate
         uses: Apple-Actions/import-codesign-certs@5142e029c445c10ffc7149d172e540235a065466  # v7.0.0
         with:
@@ -418,8 +417,8 @@ jobs:
           # ``--sequesterRsrc`` keeps extended attributes out of the archive
           # as stray ``._`` entries, which is what Apple documents for
           # notarization archives.
-          ditto -c -k --sequesterRsrc dist/literalize-macos literalize-macos.zip
-          xcrun notarytool submit literalize-macos.zip \
+          ditto -c -k --sequesterRsrc dist/literalize-macos "${RUNNER_TEMP}/literalize-macos.zip"
+          xcrun notarytool submit "${RUNNER_TEMP}/literalize-macos.zip" \
               --key "${RUNNER_TEMP}/asc-api-key.p8" \
               --key-id "${ASC_KEY_ID}" \
               --issuer "${ASC_ISSUER_ID}" \

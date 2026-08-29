@@ -42,7 +42,6 @@ js
 json
 jsonnet
 julia
-keychain
 kotlin
 kwargs
 langs
