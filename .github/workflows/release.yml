@@ -373,15 +373,10 @@ jobs:
 
       - name: Sign the macOS binary
         run: |
-          # Match on the certificate type rather than the owner name, which
-          # changes when the certificate is renewed.  Take the hash rather
-          # than the full name so that signing fails loudly here if the
-          # keychain somehow holds more than one Developer ID identity.
-          identity="$(security find-identity -v -p codesigning signing_temp.keychain | grep 'Developer ID Application' | awk '{ print $2 }')"
-          if [ "$(echo "${identity}" | wc -w)" -ne 1 ]; then
-              echo "Expected exactly one Developer ID Application identity, got: ${identity}"
-              exit 1
-          fi
+          # ``--sign`` takes a name prefix, and matches the one Developer ID
+          # identity in the keychain the previous step made.  It fails with
+          # "ambiguous" if more than one matches, so this needs no lookup.
+          #
           # A secure timestamp and the hardened runtime are both
           # prerequisites for notarization.  The hardened runtime needs the
           # entitlements file to leave a ``--onefile`` binary runnable; see
@@ -391,7 +386,7 @@ jobs:
               --timestamp \
               --options runtime \
               --entitlements bin/entitlements.plist \
-              --sign "${identity}" \
+              --sign "Developer ID Application" \
               --keychain signing_temp.keychain \
               dist/literalize-macos
           codesign --verify --strict --verbose=2 dist/literalize-macos
@@ -415,42 +410,27 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
-          if [ -z "${ASC_KEY}" ] || [ -z "${ASC_KEY_ID}" ] || [ -z "${ASC_ISSUER_ID}" ]; then
-              echo "Set the ASC_KEY, ASC_KEY_ID and ASC_ISSUER_ID repository secrets; see docs/source/release-process.rst."
-              exit 1
-          fi
-          trap 'rm -f "${RUNNER_TEMP}/asc-api-key.p8"' EXIT
-          (
-              umask 077
-              printf '%s' "${ASC_KEY}" | base64 --decode > "${RUNNER_TEMP}/asc-api-key.p8"
-          )
+          : "${ASC_KEY:?see docs/source/release-process.rst}" "${ASC_KEY_ID:?see docs/source/release-process.rst}" "${ASC_ISSUER_ID:?see docs/source/release-process.rst}"
+          printf '%s' "${ASC_KEY}" | base64 --decode > "${RUNNER_TEMP}/asc-api-key.p8"
           # ``notarytool`` takes an archive, not a bare executable.
           # ``--sequesterRsrc`` keeps extended attributes out of the archive
           # as stray ``._`` entries, which is what Apple documents for
           # notarization archives.
           ditto -c -k --sequesterRsrc dist/literalize-macos literalize-macos.zip
-          set +e
-          submission_output="$(
-              xcrun notarytool submit literalize-macos.zip \
+          xcrun notarytool submit literalize-macos.zip \
+              --key "${RUNNER_TEMP}/asc-api-key.p8" \
+              --key-id "${ASC_KEY_ID}" \
+              --issuer "${ASC_ISSUER_ID}" \
+              --wait \
+              --timeout 30m 2>&1 | tee "${RUNNER_TEMP}/notarization.log" || true
+          # ``notarytool`` does not reliably exit non-zero on a rejected
+          # submission, so check the reported status.  Only the log says why
+          # a submission was rejected; the submission output does not.
+          if ! grep -q 'status: Accepted' "${RUNNER_TEMP}/notarization.log"; then
+              xcrun notarytool log "$(awk '/^[[:space:]]*id:/ { print $2; exit }' "${RUNNER_TEMP}/notarization.log")" \
                   --key "${RUNNER_TEMP}/asc-api-key.p8" \
                   --key-id "${ASC_KEY_ID}" \
-                  --issuer "${ASC_ISSUER_ID}" \
-                  --wait \
-                  --timeout 30m 2>&1
-          )"
-          set -e
-          echo "${submission_output}"
-          # ``notarytool`` does not reliably exit non-zero on a rejected
-          # submission, so check the reported status.  On a rejection the
-          # log holds the reason, which the submission output does not.
-          if ! echo "${submission_output}" | grep -q 'status: Accepted'; then
-              submission_id="$(echo "${submission_output}" | awk '/^[[:space:]]*id:/ { print $2; exit }')"
-              if [ -n "${submission_id}" ]; then
-                  xcrun notarytool log "${submission_id}" \
-                      --key "${RUNNER_TEMP}/asc-api-key.p8" \
-                      --key-id "${ASC_KEY_ID}" \
-                      --issuer "${ASC_ISSUER_ID}" || true
-              fi
+                  --issuer "${ASC_ISSUER_ID}" || true
               exit 1
           fi
 
