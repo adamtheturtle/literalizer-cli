@@ -3,6 +3,56 @@ Changelog
 
 .. towncrier release notes start
 
+2026.08.29
+----------
+
+- Refuse empty input rather than answering differently per format. The same empty
+  input produced a JSON parse error, ``None`` for YAML and an empty dict for TOML.
+
+  Strip a leading byte order mark from input. It is a decoding artifact rather
+  than data, and reached the parsers as content.
+
+  Add ``--input-file`` to read input from a path instead of standard input.
+
+  Refuse a ``--modifier`` given more than once, which previously collapsed into
+  the modifier set with no feedback.
+
+  Warn when ``--include-preamble`` is given for output that has no preamble.
+
+  Report the ``literalizer`` version alongside the ``literalize`` version, since
+  the library decides what the output looks like.
+
+  Keep the originating library exception attached when reporting an error, rather
+  than discarding it with ``from None``.
+
+  Say in ``--help`` that language-option choices are the union across every
+  language, since ``--help`` renders before ``--language`` is known.
+
+- Reject formatting options that produce malformed output. ``--indent`` no longer
+  accepts an empty string or one holding a line break, ``--ref-key`` no longer
+  accepts an empty or whitespace-only marker, and ``--pre-indent-level`` is now
+  bounded because each level repeats the indent on every output line.
+
+- Reject options that the selected mode ignores. ``--call-function``,
+  ``--call-params`` and ``--per-element`` in literal mode, and
+  ``--pre-indent-level`` and ``--include-delimiters`` in call mode, previously
+  had no effect and produced output that did not reflect the request.
+  ``--no-new-variable`` without ``--variable-name`` was a silent no-op and is now
+  refused too.
+
+- Report a ``--call-params`` value that names no parameter as such. An empty,
+  whitespace-only or comma-only value previously reached the arity check, which
+  reported "Expected 0 parameters but got N values".
+
+- Report every ``literalizer`` error as a clean CLI message. The CLI matched two
+  hand-maintained tuples of exception classes, so the 32 ``LiteralizerError``
+  subclasses missing from them escaped as Python tracebacks. Both sites now match
+  the ``LiteralizerError`` base class.
+
+- Sign the macOS binary with a Developer ID certificate and notarize it, so
+  Gatekeeper no longer blocks it when it is downloaded in a browser.  The
+  ``xattr -d com.apple.quarantine`` workaround is no longer needed.
+
 2026.08.16.1
 ------------
 
