@@ -360,42 +360,16 @@ jobs:
       # carrying ``com.apple.quarantine`` - the attribute a browser sets on
       # a downloaded file.  A Developer ID signature plus notarization
       # clears that.
-      # The secret names match those in the CoderPadMCP and HackerRankMCP
-      # repositories, which sign and notarize with the same certificate and
-      # the same App Store Connect key.
+      # This creates a temporary ``signing_temp.keychain``, imports the
+      # certificate into it, and deletes the keychain again in its post
+      # step, so no cleanup step is needed here.  Pinned to a commit rather
+      # than a tag because it handles the signing certificate and its
+      # password.
       - name: Import the Developer ID certificate
-        env:
-          DEVELOPER_ID_APP_CERT_P12_BASE64: ${{ secrets.DEVELOPER_ID_APP_CERT_P12_BASE64 }}
-          DEVELOPER_ID_APP_CERT_PASSWORD: ${{ secrets.DEVELOPER_ID_APP_CERT_PASSWORD }}
-        run: |
-          if [ -z "${DEVELOPER_ID_APP_CERT_P12_BASE64}" ] || [ -z "${DEVELOPER_ID_APP_CERT_PASSWORD}" ]; then
-              echo "Set the DEVELOPER_ID_APP_CERT_P12_BASE64 and DEVELOPER_ID_APP_CERT_PASSWORD repository secrets; see docs/source/release-process.rst."
-              exit 1
-          fi
-          keychain_password="$(openssl rand -hex 24)"
-          security create-keychain -p "${keychain_password}" "${RUNNER_TEMP}/signing.keychain-db"
-          # Without this the keychain re-locks after a period of inactivity
-          # and signing then fails.
-          security set-keychain-settings -lut 21600 "${RUNNER_TEMP}/signing.keychain-db"
-          security unlock-keychain -p "${keychain_password}" "${RUNNER_TEMP}/signing.keychain-db"
-          # ``codesign`` looks for identities in the keychain search list.
-          security list-keychains -d user -s "${RUNNER_TEMP}/signing.keychain-db"
-          trap 'rm -f "${RUNNER_TEMP}/certificate.p12"' EXIT
-          (
-              umask 077
-              printf '%s' "${DEVELOPER_ID_APP_CERT_P12_BASE64}" | base64 --decode > "${RUNNER_TEMP}/certificate.p12"
-          )
-          security import "${RUNNER_TEMP}/certificate.p12" \
-              -k "${RUNNER_TEMP}/signing.keychain-db" \
-              -P "${DEVELOPER_ID_APP_CERT_PASSWORD}" \
-              -T /usr/bin/codesign
-          # Without this, ``codesign`` blocks on a GUI prompt for
-          # permission to use the imported key.
-          security set-key-partition-list \
-              -S apple-tool:,apple:,codesign: \
-              -s \
-              -k "${keychain_password}" \
-              "${RUNNER_TEMP}/signing.keychain-db" > /dev/null
+        uses: Apple-Actions/import-codesign-certs@5142e029c445c10ffc7149d172e540235a065466  # v7.0.0
+        with:
+          p12-file-base64: ${{ secrets.DEVELOPER_ID_APP_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.DEVELOPER_ID_APP_CERT_PASSWORD }}
 
       - name: Sign the macOS binary
         run: |
@@ -403,7 +377,7 @@ jobs:
           # changes when the certificate is renewed.  Take the hash rather
           # than the full name so that signing fails loudly here if the
           # keychain somehow holds more than one Developer ID identity.
-          identity="$(security find-identity -v -p codesigning "${RUNNER_TEMP}/signing.keychain-db" | grep 'Developer ID Application' | awk '{ print $2 }')"
+          identity="$(security find-identity -v -p codesigning signing_temp.keychain | grep 'Developer ID Application' | awk '{ print $2 }')"
           if [ "$(echo "${identity}" | wc -w)" -ne 1 ]; then
               echo "Expected exactly one Developer ID Application identity, got: ${identity}"
               exit 1
@@ -418,7 +392,7 @@ jobs:
               --options runtime \
               --entitlements bin/entitlements.plist \
               --sign "${identity}" \
-              --keychain "${RUNNER_TEMP}/signing.keychain-db" \
+              --keychain signing_temp.keychain \
               dist/literalize-macos
           codesign --verify --strict --verbose=2 dist/literalize-macos
 
@@ -492,11 +466,6 @@ jobs:
           max_attempts: 10
           retry_wait_seconds: 30
           command: spctl --assess --type exec -vv dist/literalize-macos
-
-      - name: Delete the signing keychain
-        if: always()
-        run: |
-          security delete-keychain "${RUNNER_TEMP}/signing.keychain-db" || true
 
       - name: Upload macOS binary to release
         env:
