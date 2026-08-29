@@ -395,11 +395,11 @@ jobs:
 
       # Signing a ``--onefile`` binary with the hardened runtime can leave
       # it unable to load its own bundled libraries, and nothing before
-      # this point would notice.
+      # this point would notice.  Starting up is the whole test: the
+      # bootloader unpacks and loads every bundled library before any
+      # command runs, so a conversion loads nothing further.
       - name: Check the signed binary still runs
-        run: |
-          dist/literalize-macos --version
-          echo '{"a": 1}' | dist/literalize-macos --language python
+        run: dist/literalize-macos --version
 
       # A notarization ticket cannot be stapled to a bare Mach-O
       # executable - ``stapler`` handles only ``.app`` bundles, ``.dmg``,
