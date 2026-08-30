@@ -15,11 +15,11 @@ on:
         required: true
       DEVELOPER_ID_APP_CERT_PASSWORD:
         required: true
-      ASC_KEY:
+      APPLE_ID:
         required: true
-      ASC_KEY_ID:
+      APPLE_TEAM_ID:
         required: true
-      ASC_ISSUER_ID:
+      APPLE_APP_PASSWORD:
         required: true
 
 jobs:
@@ -407,21 +407,20 @@ jobs:
       # the documented ``curl ... && chmod +x`` one-liner.
       - name: Notarize the macOS binary
         env:
-          ASC_KEY: ${{ secrets.ASC_KEY }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
         run: |
-          : "${ASC_KEY:?see docs/source/release-process.rst}" "${ASC_KEY_ID:?see docs/source/release-process.rst}" "${ASC_ISSUER_ID:?see docs/source/release-process.rst}"
-          printf '%s' "${ASC_KEY}" | base64 --decode > "${RUNNER_TEMP}/asc-api-key.p8"
+          : "${APPLE_ID:?see docs/source/release-process.rst}" "${APPLE_TEAM_ID:?see docs/source/release-process.rst}" "${APPLE_APP_PASSWORD:?see docs/source/release-process.rst}"
           # ``notarytool`` takes an archive, not a bare executable.
           # ``--sequesterRsrc`` keeps extended attributes out of the archive
           # as stray ``._`` entries, which is what Apple documents for
           # notarization archives.
           ditto -c -k --sequesterRsrc dist/literalize-macos "${RUNNER_TEMP}/literalize-macos.zip"
           xcrun notarytool submit "${RUNNER_TEMP}/literalize-macos.zip" \
-              --key "${RUNNER_TEMP}/asc-api-key.p8" \
-              --key-id "${ASC_KEY_ID}" \
-              --issuer "${ASC_ISSUER_ID}" \
+              --apple-id "${APPLE_ID}" \
+              --team-id "${APPLE_TEAM_ID}" \
+              --password "${APPLE_APP_PASSWORD}" \
               --wait \
               --timeout 30m 2>&1 | tee "${RUNNER_TEMP}/notarization.log" || true
           # ``notarytool`` does not reliably exit non-zero on a rejected
@@ -429,9 +428,9 @@ jobs:
           # a submission was rejected; the submission output does not.
           if ! grep -q 'status: Accepted' "${RUNNER_TEMP}/notarization.log"; then
               xcrun notarytool log "$(awk '/^[[:space:]]*id:/ { print $2; exit }' "${RUNNER_TEMP}/notarization.log")" \
-                  --key "${RUNNER_TEMP}/asc-api-key.p8" \
-                  --key-id "${ASC_KEY_ID}" \
-                  --issuer "${ASC_ISSUER_ID}" || true
+                  --apple-id "${APPLE_ID}" \
+                  --team-id "${APPLE_TEAM_ID}" \
+                  --password "${APPLE_APP_PASSWORD}" || true
               exit 1
           fi
 

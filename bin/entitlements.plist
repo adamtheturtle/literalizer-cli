@@ -5,7 +5,7 @@
     <!--
     The hardened runtime, which notarization requires, turns on library
     validation: every library loaded into the process must carry the same
-    Team ID as the executable.  A PyInstaller ``--onefile`` binary unpacks
+    Team ID as the executable.  A PyInstaller one-file binary unpacks
     its bundled libraries (``libpython3.13.dylib`` and friends) to a
     temporary directory at startup and loads them from there, and those
     copies keep the ad-hoc signature PyInstaller gave them.  Without this
