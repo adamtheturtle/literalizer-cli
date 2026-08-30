@@ -32,15 +32,14 @@ The export must contain exactly one such identity: the workflow stops rather tha
 Notarization credentials
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-``notarytool`` authenticates with an App Store Connect API key that has the Developer role and belongs to the same team as the signing certificate.
-Create one under `Users and Access <https://appstoreconnect.apple.com/access/integrations/api>`_, which shows the key ID and the issuer ID.
-The ``.p8`` file downloads once and cannot be downloaded again.
+``notarytool`` authenticates with the Apple ID belonging to the same team as the signing certificate.
+Create an app-specific password at `account.apple.com <https://account.apple.com/>`_.
 
 .. code-block:: console
 
-   $ base64 -i AuthKey_XXXXXXXXXX.p8 | gh secret set ASC_KEY
-   $ gh secret set ASC_KEY_ID
-   $ gh secret set ASC_ISSUER_ID
+   $ gh secret set APPLE_ID
+   $ gh secret set APPLE_TEAM_ID
+   $ gh secret set APPLE_APP_PASSWORD
 
 Perform a Release
 ~~~~~~~~~~~~~~~~~
