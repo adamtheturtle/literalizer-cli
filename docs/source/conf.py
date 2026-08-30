@@ -111,8 +111,8 @@ html_theme_options = {
 # Retry link checking to avoid transient network errors.
 linkcheck_retries = 5
 linkcheck_ignore = [
-    # This site intermittently aborts TLS handshakes from GitHub's Windows
-    # runners even after all configured retries.
+    # This site intermittently aborts secure connections from GitHub's
+    # Windows runners even after all configured retries.
     r"https://wiki\.nixos\.org/wiki/Flakes.*",
 ]
 
