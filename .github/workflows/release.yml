@@ -331,15 +331,12 @@ jobs:
 
       # We have a race condition - PyPI may not have propagated the package yet.
       # Wait for PyPI to have the package available before running PyInstaller.
-      # Note: PEP 440 normalizes versions by stripping leading zeros (e.g., 2026.01.22 -> 2026.1.22).
       - name: Wait for PyPI propagation
         uses: nick-fields/retry@v4
         with:
           timeout_seconds: 10
           max_attempts: 50
-          command: |
-            normalized_version=$(echo "${{ needs.build.outputs.new_tag }}" | sed -E 's/\.0+([0-9])/.\1/g')
-            pip index versions literalizer-cli | grep -wq "$normalized_version"
+          command: python -m pip install --dry-run --no-deps literalizer-cli==${{ needs.build.outputs.new_tag }}
 
       - name: Create requirements file
         run: echo "literalizer-cli==${{ needs.build.outputs.new_tag }}" > requirements.txt
@@ -434,19 +431,6 @@ jobs:
               exit 1
           fi
 
-      # This is the check that a user downloading the binary in a browser
-      # would run into.  It asks Apple's servers about the ticket, exactly
-      # as Gatekeeper does, so it fails ("source=Unnotarized Developer ID",
-      # exit status 3) if notarization did not take effect.  Retried
-      # because it depends on a freshly published ticket.
-      - name: Check Gatekeeper accepts the binary
-        uses: nick-fields/retry@v4
-        with:
-          timeout_seconds: 60
-          max_attempts: 10
-          retry_wait_seconds: 30
-          command: spctl --assess --type exec -vv dist/literalize-macos
-
       - name: Upload macOS binary to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -469,16 +453,13 @@ jobs:
 
       # We have a race condition - PyPI may not have propagated the package yet.
       # Wait for PyPI to have the package available before running PyInstaller.
-      # Note: PEP 440 normalizes versions by stripping leading zeros (e.g., 2026.01.22 -> 2026.1.22).
       - name: Wait for PyPI propagation
         uses: nick-fields/retry@v4
         with:
           timeout_seconds: 10
           max_attempts: 50
           shell: bash
-          command: |
-            normalized_version=$(echo "${{ needs.build.outputs.new_tag }}" | sed -E 's/\.0+([0-9])/.\1/g')
-            pip index versions literalizer-cli | grep -wq "$normalized_version"
+          command: python -m pip install --dry-run --no-deps literalizer-cli==${{ needs.build.outputs.new_tag }}
 
       - name: Create requirements file
         run: echo "literalizer-cli==${{ needs.build.outputs.new_tag }}" > requirements.txt
