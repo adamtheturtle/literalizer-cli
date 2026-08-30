@@ -325,6 +325,7 @@ ignore_names = [
     "htmlhelp_basename",
     "intersphinx_mapping",
     "language",
+    "linkcheck_ignore",
     "linkcheck_retries",
     "master_doc",
     "minimum_python_version",
