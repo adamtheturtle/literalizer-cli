@@ -143,7 +143,9 @@ lint.unfixable = [
     "ERA001",
 ]
 lint.external = [ "NOD" ]
-lint.flake8-tidy-imports.banned-api."typing.cast".msg = "typing.cast is banned: use explicit type narrowing or a typed variable instead."
+lint.flake8-tidy-imports.banned-api."typing.cast".msg = """\
+    typing.cast is banned: use explicit type narrowing or a typed variable instead.\
+    """
 lint.pydocstyle.convention = "google"
 
 [tool.pylint]
@@ -359,12 +361,12 @@ plugins = [
 ]
 
 [tool.pyrefly]
-errors.non-exhaustive-match = "error"
-errors.unused-ignore = "error"
-disable-project-excludes-heuristics = true
 project-excludes = [
     "src/*/_setuptools_scm_version.py",
 ]
+errors.non-exhaustive-match = "error"
+errors.unused-ignore = "error"
+disable-project-excludes-heuristics = true
 
 [tool.pyright]
 typeCheckingMode = "strict"
