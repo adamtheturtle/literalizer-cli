@@ -27,8 +27,9 @@ Options:
   --sequence-format TEXT          Sequence format (language-specific). Choices
                                   across all languages: array, cell_array,
                                   dynamic_array, initializer_list, list, seq,
-                                  sequence, slice, table, tuple, vec, vector.
-                                  Not every language accepts every value.
+                                  sequence, slice, table, tuple,
+                                  tuple_nested_vec, vec, vector. Not every
+                                  language accepts every value.
   --set-format TEXT               Set format (language-specific). Choices across
                                   all languages: array, btree_set, dict,
                                   frozenset, hash_set, map_set, set, sorted_set,
