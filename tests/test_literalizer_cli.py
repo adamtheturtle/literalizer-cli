@@ -1787,7 +1787,6 @@ def test_record_struct_name_prefix() -> None:
     )
     assert result.exit_code == 0, result.output
     expected = (
-        "use std::collections::HashMap;\n"
         "struct Widget0 {\n"
         "    id: i32,\n"
         "    label: &'static str,\n"
