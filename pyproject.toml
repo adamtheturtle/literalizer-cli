@@ -365,8 +365,8 @@ project-excludes = [
     "src/*/_setuptools_scm_version.py",
 ]
 errors.non-exhaustive-match = "error"
-errors.unused-ignore = "error"
 disable-project-excludes-heuristics = true
+preset = "strict"
 
 [tool.pyright]
 typeCheckingMode = "strict"
