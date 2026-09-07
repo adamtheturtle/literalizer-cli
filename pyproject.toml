@@ -74,7 +74,7 @@ optional-dependencies.dev = [
     # into docs/source/unreleased.rst during Sphinx builds.
     "sphinxcontrib-towncrier==0.5.0a0",
     "strict-kwargs==2026.8.28.post2",
-    "towncrier==25.8.0",
+    "towncrier==26.9.0",
     "ty==0.0.78",
     "uv==0.12.9",
     "vale==3.20.0.0",
@@ -88,7 +88,7 @@ optional-dependencies.release = [
     # homebrew-pypi-poet uses pkg_resources, which setuptools 81 warns is
     # scheduled for removal. Keep the release environment on setuptools 80.
     "setuptools>=70,<85",
-    "towncrier==25.8.0",
+    "towncrier==26.9.0",
 ]
 urls.Documentation = "https://adamtheturtle.github.io/literalizer-cli/"
 urls.Source = "https://github.com/adamtheturtle/literalizer-cli"
