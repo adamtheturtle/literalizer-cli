@@ -1,5 +1,4 @@
-# These files contain markup constructs that Snapper main does not yet preserve.
+# These files contain markup constructs that Snapper 0.11.0 does not yet preserve.
 ignore = [
   "CHANGELOG.rst",
-  "docs/source/commands.rst",
 ]
