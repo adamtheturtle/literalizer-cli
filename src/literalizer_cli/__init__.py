@@ -74,7 +74,7 @@ def _language_owned_enum(
     *, lang_cls: LanguageCls, name: str
 ) -> type[enum.Enum]:
     """Return an enum defined only by a particular language class."""
-    enum_cls: type[enum.Enum] = vars(lang_cls)[name]
+    enum_cls: type[enum.Enum] = vars(lang_cls)[name]  # ty: ignore[unsound-assignment]
     return enum_cls
 
 
@@ -1020,7 +1020,7 @@ def main(
                 _resolve_modifiers(lang_cls=lang_cls, values=modifiers)
                 if len(modifiers) > 0
                 else frozenset()
-            )
+            )  # ty: ignore[unsound-assignment]
             variable_form = NewVariable(
                 name=variable_name,
                 modifiers=resolved_modifiers,
