@@ -315,7 +315,7 @@ def _resolve_modifiers(
     members.
     """
     modifier_enum = lang_cls.Modifiers
-    if not modifier_enum.__members__:
+    if len(modifier_enum.__members__) == 0:
         lang_name = lang_cls.__name__.lower()
         raise click.UsageError(
             message=(
@@ -410,7 +410,7 @@ def _validate_indent(
         click.BadParameter: If the indent is empty or spans lines.
     """
     del context, parameter
-    if not value:
+    if value == "":
         msg = "--indent cannot be empty."
         raise click.BadParameter(message=msg)
     if "\n" in value or "\r" in value:
@@ -438,7 +438,7 @@ def _validate_ref_key(
         click.BadParameter: If the key is empty or only whitespace.
     """
     del context, parameter
-    if not value.strip():
+    if value.strip() == "":
         msg = "--ref-key cannot be empty or whitespace."
         raise click.BadParameter(message=msg)
     return value
@@ -923,7 +923,7 @@ def main(
     # reads text that is already decoded, so the mark is data to them and
     # only ever a parse error.
     input_string = input_string.removeprefix("\ufeff")
-    if not input_string.strip():
+    if input_string.strip() == "":
         # JSON already refused empty input. YAML produced None and TOML an
         # empty dict, so the same empty input gave three different answers.
         raise click.UsageError(
@@ -1018,7 +1018,7 @@ def main(
         if new_variable:
             resolved_modifiers: frozenset[enum.Enum] = (
                 _resolve_modifiers(lang_cls=lang_cls, values=modifiers)
-                if modifiers
+                if len(modifiers) > 0
                 else frozenset()
             )
             variable_form = NewVariable(
@@ -1026,14 +1026,14 @@ def main(
                 modifiers=resolved_modifiers,
             )
         else:
-            if modifiers:
+            if len(modifiers) > 0:
                 raise click.UsageError(
                     message=(
                         "--modifier cannot be used with --no-new-variable."
                     ),
                 )
             variable_form = ExistingVariable(name=variable_name)
-    elif modifiers:
+    elif len(modifiers) > 0:
         raise click.UsageError(
             message="--modifier requires --variable-name.",
         )
@@ -1058,9 +1058,9 @@ def main(
                 message="--call-params is required in call mode.",
             )
         parsed_params = tuple(
-            p.strip() for p in call_params.split(sep=",") if p.strip()
+            p.strip() for p in call_params.split(sep=",") if p.strip() != ""
         )
-        if not parsed_params:
+        if len(parsed_params) == 0:
             # Falling through leaves the arity check to report "Expected 0
             # parameters but got N values", which describes the consequence
             # rather than the mistake.
@@ -1092,7 +1092,7 @@ def main(
             ref_key=ref_key,
         )
     if include_preamble:
-        if not result.preamble:
+        if len(result.preamble) == 0:
             click.echo(
                 message=(
                     "Warning: --include-preamble was given but this output "
