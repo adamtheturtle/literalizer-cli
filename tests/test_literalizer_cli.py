@@ -5,13 +5,12 @@ import runpy
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 import literalizer.exceptions
 import pytest
 from click import ClickException
 from click.testing import CliRunner
-from literalizer import ExistingVariable, InputFormat, NewVariable
+from literalizer import ExistingVariable, InputFormat, Language, NewVariable
 from literalizer.languages import Go, Java, Python, R, Rust
 from pytest_regressions.file_regression import FileRegressionFixture
 
@@ -31,7 +30,7 @@ class ExceptionCase:
 
     input_format: InputFormat
     input_string: str
-    language: Any
+    language: Language
     expected: str
     variable_form: NewVariable | ExistingVariable | None
 
@@ -537,7 +536,7 @@ def test_literalizer_exceptions_are_wrapped_as_click_exceptions(
 ) -> None:
     """Real literalizer exceptions are surfaced as Click exceptions."""
     with pytest.raises(expected_exception=ClickException) as exc_info:
-        literalizer_cli.literalize_input(
+        _ = literalizer_cli.literalize_input(
             input_string=case.input_string,
             language=case.language,
             input_format=case.input_format,
@@ -2158,13 +2157,13 @@ def test_every_library_exception_is_caught() -> None:
         and issubclass(obj, Exception)
         and obj is not literalizer.exceptions.LiteralizerError
     ]
-    assert subclasses
+    assert len(subclasses) > 0
     uncaught = [
         obj.__name__
         for obj in subclasses
         if not issubclass(obj, literalizer.exceptions.LiteralizerError)
     ]
-    assert not uncaught
+    assert len(uncaught) == 0
 
 
 @pytest.mark.parametrize(
@@ -2528,7 +2527,7 @@ def test_wrapper_does_not_run_on_import() -> None:
 def test_input_file_is_read_instead_of_stdin(tmp_path: Path) -> None:
     """Input can come from a path, which is awkward to pipe on Windows."""
     source = tmp_path / "data.json"
-    source.write_text(data='{"a": 1}', encoding="utf-8")
+    _ = source.write_text(data='{"a": 1}', encoding="utf-8")
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -2550,7 +2549,7 @@ def test_input_file_is_read_instead_of_stdin(tmp_path: Path) -> None:
 def test_empty_input_file_names_the_file(tmp_path: Path) -> None:
     """The message points at the file, not at stdin."""
     source = tmp_path / "empty.json"
-    source.write_text(data="", encoding="utf-8")
+    _ = source.write_text(data="", encoding="utf-8")
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
