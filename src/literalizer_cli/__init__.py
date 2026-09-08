@@ -74,7 +74,10 @@ def _language_owned_enum(
     *, lang_cls: LanguageCls, name: str
 ) -> type[enum.Enum]:
     """Return an enum defined only by a particular language class."""
-    enum_cls: type[enum.Enum] = vars(lang_cls)[name]  # ty: ignore[unsound-assignment]
+    enum_cls = vars(lang_cls)[name]
+    if not isinstance(enum_cls, type) or not issubclass(enum_cls, enum.Enum):
+        message = f"{lang_cls.__name__}.{name} is not an enum class"
+        raise TypeError(message)
     return enum_cls
 
 
@@ -314,6 +317,8 @@ def _resolve_modifiers(
     """Resolve CLI modifier strings to the language's Modifiers
     members.
     """
+    if len(values) == 0:
+        return frozenset[enum.Enum]()
     modifier_enum = lang_cls.Modifiers
     if len(modifier_enum.__members__) == 0:
         lang_name = lang_cls.__name__.lower()
@@ -1016,11 +1021,10 @@ def main(
     variable_form: VariableForm | None = None
     if variable_name is not None:
         if new_variable:
-            resolved_modifiers: frozenset[enum.Enum] = (
-                _resolve_modifiers(lang_cls=lang_cls, values=modifiers)
-                if len(modifiers) > 0
-                else frozenset()
-            )  # ty: ignore[unsound-assignment]
+            resolved_modifiers = _resolve_modifiers(
+                lang_cls=lang_cls,
+                values=modifiers,
+            )
             variable_form = NewVariable(
                 name=variable_name,
                 modifiers=resolved_modifiers,
