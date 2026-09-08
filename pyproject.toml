@@ -36,7 +36,12 @@ dependencies = [
     "click>=8.3.0,<8.6.0",
     "literalizer==2026.9.4",
 ]
-optional-dependencies.dev = [
+urls.Documentation = "https://adamtheturtle.github.io/literalizer-cli/"
+urls.Source = "https://github.com/adamtheturtle/literalizer-cli"
+scripts.literalize = "literalizer_cli:main"
+
+[dependency-groups]
+dev = [
     "actionlint-py==1.7.12.24",
     "check-manifest==0.51",
     "deptry==0.25.1",
@@ -82,7 +87,7 @@ optional-dependencies.dev = [
     "yamlfix==1.19.1",
     "zizmor==1.30.0",
 ]
-optional-dependencies.release = [
+release = [
     "check-wheel-contents==0.6.3",
     "homebrew-pypi-poet==0.10",
     # homebrew-pypi-poet uses pkg_resources, which setuptools 81 warns is
@@ -90,9 +95,6 @@ optional-dependencies.release = [
     "setuptools>=70,<85",
     "towncrier==26.9.0",
 ]
-urls.Documentation = "https://adamtheturtle.github.io/literalizer-cli/"
-urls.Source = "https://github.com/adamtheturtle/literalizer-cli"
-scripts.literalize = "literalizer_cli:main"
 
 [tool.setuptools]
 packages.find.where = [
@@ -299,12 +301,6 @@ ignore = [
     "uv.lock",
     "VERSION",
     "zizmor.yml",
-]
-
-[tool.deptry]
-optional_dependencies_dev_groups = [
-    "dev",
-    "release",
 ]
 
 [tool.vulture]
