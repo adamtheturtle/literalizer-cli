@@ -22,7 +22,7 @@ from literalizer import (
     literalize_call,
 )
 from literalizer._language import Language, LanguageCls
-from literalizer.languages import ALL_LANGUAGES
+from literalizer.languages import ALL_LANGUAGES, Python
 
 try:
     __version__ = version(distribution_name="literalizer-cli")
@@ -70,17 +70,6 @@ _REF_CASE_MAP: dict[str, IdentifierCase] = {
 }
 
 
-def _language_owned_enum(
-    *, lang_cls: LanguageCls, name: str
-) -> type[enum.Enum]:
-    """Return an enum defined only by a particular language class."""
-    enum_cls = vars(lang_cls)[name]
-    if not isinstance(enum_cls, type) or not issubclass(enum_cls, enum.Enum):
-        message = f"{lang_cls.__name__}.{name} is not an enum class"
-        raise TypeError(message)
-    return enum_cls
-
-
 # Map from CLI option name to a getter for the enum class.
 _OPTION_TO_ENUM: dict[str, Callable[[LanguageCls], type[enum.Enum]]] = {
     "sequence_format": lambda cls: cls.SequenceFormats,
@@ -105,14 +94,8 @@ _OPTION_TO_ENUM: dict[str, Callable[[LanguageCls], type[enum.Enum]]] = {
     "call_style": lambda cls: cls.CallStyles,
     "numeric_style": lambda cls: cls.NumericStyles,
     "language_version": lambda cls: cls.VersionFormats,
-    "annotation_evaluation": lambda cls: _language_owned_enum(
-        lang_cls=cls,
-        name="AnnotationEvaluations",
-    ),
-    "union_format": lambda cls: _language_owned_enum(
-        lang_cls=cls,
-        name="UnionFormats",
-    ),
+    "annotation_evaluation": lambda _: Python.AnnotationEvaluations,
+    "union_format": lambda _: Python.UnionFormats,
 }
 
 
