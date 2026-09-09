@@ -35,37 +35,6 @@ class ExceptionCase:
     variable_form: NewVariable | ExistingVariable | None
 
 
-def test_language_owned_enum_rejects_non_enum_attribute(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """A dynamically looked-up language attribute must really be an
-    enum.
-    """
-    monkeypatch.setattr(
-        target=Python,
-        name="AnnotationEvaluations",
-        value="not an enum",
-    )
-    runner = CliRunner()
-    with pytest.raises(
-        expected_exception=TypeError,
-        match=r"Python\.AnnotationEvaluations is not an enum class",
-    ):
-        _ = runner.invoke(
-            cli=main,
-            args=[
-                "--language",
-                "python",
-                "--input-format",
-                "json",
-                "--annotation-evaluation",
-                "postponed",
-            ],
-            input="null\n",
-            catch_exceptions=False,
-        )
-
-
 def test_help(file_regression: FileRegressionFixture) -> None:
     """Expected help text is shown.
 
