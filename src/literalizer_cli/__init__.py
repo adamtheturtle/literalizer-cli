@@ -919,7 +919,7 @@ def main(
         )
     lang_cls = _LANGUAGE_MAP[language]
 
-    lang_kwargs: dict[str, object] = {}
+    lang_kwargs: dict[str, str | enum.Enum] = {}
     cli_language_options = {
         "sequence_format": sequence_format,
         "set_format": set_format,
