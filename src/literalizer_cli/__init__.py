@@ -24,10 +24,7 @@ from literalizer import (
 from literalizer._language import Language, LanguageCls
 from literalizer.languages import ALL_LANGUAGES, Python
 
-try:
-    __version__ = version(distribution_name="literalizer-cli")
-except PackageNotFoundError:  # pragma: no cover
-    from ._setuptools_scm_version import __version__
+from literalizer_cli._setuptools_scm_version import __version__
 
 
 def _installed_literalizer_version() -> str:
