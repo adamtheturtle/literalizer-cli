@@ -2586,3 +2586,111 @@ def test_missing_input_file_is_rejected(tmp_path: Path) -> None:
     )
     assert result.exit_code == _USAGE_ERROR_EXIT_CODE
     assert "does not exist" in result.output
+
+
+@pytest.mark.parametrize(
+    argnames=("input_format", "source"),
+    argvalues=[
+        ("json", '{"calls": [["Ada"], ["Grace"]]}'),
+        ("json5", "{calls: [['Ada'], ['Grace']]}"),
+        ("yaml", "calls:\n  - [Ada]\n  - [Grace]\n"),
+        ("toml", 'calls = [["Ada"], ["Grace"]]'),
+    ],
+)
+def test_input_root_key_selects_call_rows(
+    input_format: str, source: str
+) -> None:
+    """Call rows can be selected from a mapping in every input format."""
+    result = CliRunner().invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "-f",
+            input_format,
+            "--mode",
+            "call",
+            "--call-function",
+            "welcome",
+            "--call-params",
+            "name",
+            "--input-root-key",
+            "calls",
+        ],
+        input=source,
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output == 'welcome(name="Ada")\nwelcome(name="Grace")\n'
+
+
+@pytest.mark.parametrize(
+    argnames="source",
+    argvalues=['{"other": []}', "[]"],
+)
+def test_invalid_input_root_key_is_a_cli_error(source: str) -> None:
+    """Missing keys and non-mapping roots report a clean library error."""
+    result = CliRunner().invoke(
+        cli=main,
+        args=[
+            "-l",
+            "python",
+            "--mode",
+            "call",
+            "--call-function",
+            "welcome",
+            "--call-params",
+            "name",
+            "--input-root-key",
+            "calls",
+        ],
+        input=source,
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 1
+    assert result.output.startswith("Error: ")
+    assert "calls" in result.output
+
+
+def test_input_root_key_is_rejected_in_literal_mode() -> None:
+    """Literal mode rejects an option that only selects call input."""
+    result = CliRunner().invoke(
+        cli=main,
+        args=["-l", "python", "--input-root-key", "calls"],
+        input='{"calls": []}',
+        catch_exceptions=False,
+    )
+    assert result.exit_code == _USAGE_ERROR_EXIT_CODE
+    assert "--input-root-key has no effect in literal mode." in result.output
+
+
+@pytest.mark.parametrize(
+    argnames=("args", "source", "expected"),
+    argvalues=[
+        ([], "[[1, 2]]", "(\n    (\n        1,\n        2,\n    ),\n)\n"),
+        (
+            [
+                "--mode",
+                "call",
+                "--call-function",
+                "consume",
+                "--call-params",
+                "value",
+            ],
+            "[[[1, 2]]]",
+            "consume(value=(\n    1,\n    2,\n))\n",
+        ),
+    ],
+)
+def test_collection_layout_applies_in_both_modes(
+    args: list[str], source: str, expected: str
+) -> None:
+    """Multiline layout controls nested values and call arguments."""
+    result = CliRunner().invoke(
+        cli=main,
+        args=["-l", "python", "--collection-layout", "MULTILINE", *args],
+        input=source,
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output == expected
