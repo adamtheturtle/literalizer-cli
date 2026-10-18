@@ -180,6 +180,11 @@ Options:
   --call-function TEXT            Function name for call mode (e.g.
                                   'create_user').
   --call-params TEXT              Comma-separated parameter names for call mode.
+  --input-root-key TEXT           In call mode, select rows from this key in the
+                                  input mapping.
+  --collection-layout [compact|multiline]
+                                  Layout of collections, including collections
+                                  inside call arguments.  [default: compact]
   --per-element / --no-per-element
                                   In call mode, each top-level list element
                                   becomes a separate call.

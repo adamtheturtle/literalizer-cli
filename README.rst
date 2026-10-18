@@ -30,6 +30,14 @@ Usage example
    create_user(name="alice", age=30)
    create_user(name="bob", age=25)
 
+Select call rows from a mapping, including a TOML table::
+
+   $ echo 'calls = [["Ada"], ["Grace"]]' | literalize --language python --input-format toml --mode call --input-root-key calls --call-function welcome --call-params name
+   welcome(name="Ada")
+   welcome(name="Grace")
+
+Use ``--collection-layout multiline`` to expand nested collections in literals or call arguments.
+
 Installation
 ------------
 

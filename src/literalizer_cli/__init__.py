@@ -12,16 +12,18 @@ import click
 import literalizer.exceptions
 from click.core import ParameterSource
 from literalizer import (
+    CollectionLayout,
     ExistingVariable,
     IdentifierCase,
     InputFormat,
+    Language,
+    LanguageCls,
     LiteralizeResult,
     NewVariable,
     VariableForm,
     literalize,
     literalize_call,
 )
-from literalizer._language import Language, LanguageCls
 from literalizer.languages import ALL_LANGUAGES, Python
 
 try:
@@ -462,6 +464,7 @@ def _reject_options_ignored_by_mode(*, mode: str) -> None:
             ("call_function", "--call-function"),
             ("call_params", "--call-params"),
             ("per_element", "--per-element"),
+            ("input_root_key", "--input-root-key"),
         ),
     }
     for name, flag in ignored_by_mode[mode]:
@@ -476,6 +479,7 @@ def literalize_input(
     input_string: str,
     language: Language,
     input_format: InputFormat,
+    collection_layout: CollectionLayout = CollectionLayout.COMPACT,
     pre_indent_level: int,
     include_delimiters: bool,
     variable_form: VariableForm | None,
@@ -488,6 +492,7 @@ def literalize_input(
         return literalize(
             source=input_string,
             input_format=input_format,
+            collection_layout=collection_layout,
             language=language,
             pre_indent_level=pre_indent_level,
             include_delimiters=include_delimiters,
@@ -509,6 +514,8 @@ def literalize_call_input(
     input_string: str,
     language: Language,
     input_format: InputFormat,
+    collection_layout: CollectionLayout = CollectionLayout.COMPACT,
+    input_root_key: str | None = None,
     target_function: str,
     parameter_names: tuple[str, ...],
     per_element: bool,
@@ -524,7 +531,9 @@ def literalize_call_input(
         return literalize_call(
             source=input_string,
             input_format=input_format,
+            collection_layout=collection_layout,
             language=language,
+            input_root_key=input_root_key,
             target_function=target_function,
             parameter_names=parameter_names,
             per_element=per_element,
@@ -821,6 +830,21 @@ def literalize_call_input(
     help="Comma-separated parameter names for call mode.",
 )
 @click.option(
+    "--input-root-key",
+    default=None,
+    help="In call mode, select rows from this key in the input mapping.",
+)
+@click.option(
+    "--collection-layout",
+    default="compact",
+    show_default=True,
+    type=click.Choice(
+        choices=[member.name.lower() for member in CollectionLayout],
+        case_sensitive=False,
+    ),
+    help="Layout of collections, including collections inside call arguments.",
+)
+@click.option(
     "--per-element/--no-per-element",
     default=True,
     help="In call mode, each top-level list element becomes a separate call.",
@@ -851,6 +875,8 @@ def main(
     *,
     language: str,
     input_format: str,
+    input_root_key: str | None,
+    collection_layout: str,
     pre_indent_level: int,
     indent: str,
     include_delimiters: bool,
@@ -1058,6 +1084,8 @@ def main(
             input_string=input_string,
             language=lang_instance,
             input_format=_INPUT_FORMAT_MAP[input_format],
+            collection_layout=CollectionLayout[collection_layout.upper()],
+            input_root_key=input_root_key,
             target_function=call_function,
             parameter_names=parsed_params,
             per_element=per_element,
@@ -1071,6 +1099,7 @@ def main(
             input_string=input_string,
             language=lang_instance,
             input_format=_INPUT_FORMAT_MAP[input_format],
+            collection_layout=CollectionLayout[collection_layout.upper()],
             pre_indent_level=pre_indent_level,
             include_delimiters=include_delimiters,
             variable_form=variable_form,
