@@ -51,6 +51,7 @@ javascript
 jdk
 js
 json
+jsonc
 jsonnet
 julia
 kotlin
