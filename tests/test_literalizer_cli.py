@@ -1722,7 +1722,8 @@ def test_heterogeneous_strategy_rust_tagged_enum() -> None:
     )
     assert result.exit_code == 0, result.output
     expected = (
-        "enum Value {\n"
+        "#[derive(Clone)]\n"
+        "pub enum Value {\n"
         "    I32(i32),\n"
         "    Str(&'static str),\n"
         "}\n"
@@ -1786,9 +1787,10 @@ def test_record_struct_name_prefix() -> None:
     )
     assert result.exit_code == 0, result.output
     expected = (
-        "struct Widget0 {\n"
-        "    id: i32,\n"
-        "    label: &'static str,\n"
+        "#[derive(Clone)]\n"
+        "pub struct Widget0 {\n"
+        "    pub id: i32,\n"
+        "    pub label: &'static str,\n"
         "}\n"
         "let data = Widget0 {\n"
         "    id: 1,\n"

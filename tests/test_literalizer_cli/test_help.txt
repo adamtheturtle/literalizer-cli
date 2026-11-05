@@ -4,7 +4,7 @@ Usage: literalize [OPTIONS]
 
 Options:
   --version                       Show the version and exit.
-  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|forth|fortran|fsharp|gleam|go|groovy|haskell|haxe|hcl|java|javascript|json5|jsonnet|julia|kotlin|lua|matlab|mojo|nim|nix|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|roc|ruby|rust|scala|scheme|sml|swift|systemverilog|tcl|toml|typescript|v|visualbasic|wren|yaml|zig]
+  -l, --language [ada|bash|c|clojure|cobol|commonlisp|cpp|crystal|csharp|d|dart|dhall|elixir|elm|erlang|forth|fortran|fsharp|gleam|go|groovy|haskell|haxe|hcl|java|javascript|json5|jsonc|jsonnet|julia|kotlin|lua|matlab|mojo|nim|nix|norg|objectivec|ocaml|occam|odin|perl|php|powershell|purescript|python|r|racket|raku|roc|ruby|rust|scala|scheme|sml|swift|systemverilog|tcl|toml|typescript|v|visualbasic|wren|yaml|zig]
                                   Target language for output.  [required]
   --input-file FILE               Read input from this file instead of standard
                                   input.
@@ -41,9 +41,9 @@ Options:
                                   groovy, haskell, iso, java, js, julia, kotlin,
                                   lua, matlab, nim, objc, ocaml, perl, php,
                                   powershell, python, r, racket, raku, ruby,
-                                  rust, scala, sml, swift, toml, visual_basic,
-                                  yaml, zig. Not every language accepts every
-                                  value.
+                                  ruby_short, rust, scala, sml, swift, toml,
+                                  visual_basic, yaml, zig. Not every language
+                                  accepts every value.
   --datetime-format TEXT          Datetime format (language-specific). Choices
                                   across all languages: cpp, csharp, dart,
                                   elixir, epoch, erlang, fsharp, go, haskell,
@@ -75,12 +75,12 @@ Options:
                                   across all languages: default, rocket, symbol.
                                   Not every language accepts every value.
   --dict-format TEXT              Dict format (language-specific). Choices
-                                  across all languages: btree_map,
-                                  containers_map, default, dict, dictionary,
-                                  hash_map, list_map, map, map_of_entries,
-                                  object, ordered, sorted_dictionary, struct,
-                                  unordered_map. Not every language accepts
-                                  every value.
+                                  across all languages: anonymous_record,
+                                  btree_map, containers_map, default, dict,
+                                  dictionary, hash_map, list_map, map,
+                                  map_of_entries, object, ordered, record,
+                                  sorted_dictionary, struct, unordered_map. Not
+                                  every language accepts every value.
   --float-format TEXT             Float format (language-specific). Choices
                                   across all languages: fixed, repr, scientific.
                                   Not every language accepts every value.
@@ -132,9 +132,9 @@ Options:
                                   py39, r2022a, r7rs, sml_97, v0, v0_12, v0_14,
                                   v0_15, v0_19, v0_20, v0_4, v1, v10, v17,
                                   v1_11, v1_14, v1_18, v1_2, v1_9, v2, v2002,
-                                  v2003, v2008, v24_5, v3, v4, v5, v5_1, v5_36,
-                                  v5_4, v5_9, v6d, v7, v8, v8_1, v8_6. Not every
-                                  language accepts every value.
+                                  v2003, v2008, v24_5, v2_4, v3, v4, v5, v5_1,
+                                  v5_36, v5_4, v5_9, v6d, v7, v8, v8_1, v8_6.
+                                  Not every language accepts every value.
   --annotation-evaluation TEXT    Annotation evaluation (language-specific).
                                   Choices across all languages: eager,
                                   postponed. Not every language accepts every
