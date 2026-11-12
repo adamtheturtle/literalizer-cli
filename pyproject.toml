@@ -375,6 +375,7 @@ project-excludes = [
     "src/*/_setuptools_scm_version.py",
 ]
 errors.non-exhaustive-match = "error"
+coverage.includes = [ "src/**" ]
 disable-project-excludes-heuristics = true
 enabled-ignores = [ "pyrefly" ]
 preset = "all"
