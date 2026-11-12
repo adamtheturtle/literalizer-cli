@@ -72,8 +72,9 @@ Options:
                                   short, static, typed, val, var. Not every
                                   language accepts every value.
   --dict-entry-style TEXT         Dict entry style (language-specific). Choices
-                                  across all languages: default, rocket, symbol.
-                                  Not every language accepts every value.
+                                  across all languages: default, rocket, spaced,
+                                  symbol. Not every language accepts every
+                                  value.
   --dict-format TEXT              Dict format (language-specific). Choices
                                   across all languages: anonymous_record,
                                   btree_map, containers_map, default, dict,
