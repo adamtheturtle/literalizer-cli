@@ -1,6 +1,5 @@
 """Tests for literalizer_cli."""
 
-import inspect
 import runpy
 import textwrap
 from dataclasses import dataclass
@@ -2152,10 +2151,11 @@ def test_every_library_exception_is_caught() -> None:
     Guards the regression directly: if the library grows an exception outside
     the hierarchy, the CLI would leak it as a traceback again.
     """
+    module_members: dict[str, object] = vars(literalizer.exceptions)
     subclasses = [
         obj
-        for obj in vars(literalizer.exceptions).values()
-        if inspect.isclass(object=obj)
+        for obj in module_members.values()
+        if isinstance(obj, type)
         and issubclass(obj, Exception)
         and obj is not literalizer.exceptions.LiteralizerError
     ]
