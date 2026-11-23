@@ -4,6 +4,7 @@ import runpy
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import literalizer.exceptions
 import pytest
@@ -15,6 +16,9 @@ from pytest_regressions.file_regression import FileRegressionFixture
 
 import literalizer_cli
 from literalizer_cli import main
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 _USAGE_ERROR_EXIT_CODE = 2
 """Click's exit code for a ``UsageError``."""
@@ -2151,7 +2155,7 @@ def test_every_library_exception_is_caught() -> None:
     Guards the regression directly: if the library grows an exception outside
     the hierarchy, the CLI would leak it as a traceback again.
     """
-    module_members: dict[str, object] = vars(literalizer.exceptions)
+    module_members: Mapping[str, object] = vars(literalizer.exceptions)
     subclasses = [
         obj
         for obj in module_members.values()
