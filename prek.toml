@@ -63,10 +63,12 @@ hooks = [
   },
   {
     id = "end-of-file-fixer",
+    priority = 100,
     stages = ["pre-commit"]
   },
   {
     id = "trailing-whitespace",
+    priority = 110,
     stages = ["pre-commit"]
   }
 ]
@@ -98,6 +100,7 @@ repo = "local"
 hooks = [
   {
     id = "actionlint",
+    priority = 500,
     name = "actionlint",
     entry = "uv run --group=dev actionlint",
     language = "python",
@@ -108,6 +111,7 @@ hooks = [
   },
   {
     id = "shellcheck",
+    priority = 500,
     name = "shellcheck",
     entry = "uv run --group=dev shellcheck --shell=bash",
     language = "python",
@@ -117,6 +121,7 @@ hooks = [
   },
   {
     id = "shfmt",
+    priority = 120,
     name = "shfmt",
     entry = "uv run --group=dev shfmt --write --space-redirects --indent=4",
     language = "python",
@@ -126,6 +131,7 @@ hooks = [
   },
   {
     id = "pydocstringformatter",
+    priority = 130,
     name = "pydocstringformatter",
     entry = "uv run --group=dev pydocstringformatter",
     language = "python",
@@ -135,6 +141,7 @@ hooks = [
   },
   {
     id = "mypy",
+    priority = 520,
     name = "mypy",
     stages = ["pre-push"],
     entry = "uv run --group=dev -m mypy",
@@ -148,6 +155,7 @@ hooks = [
   },
   {
     id = "check-manifest",
+    priority = 520,
     name = "check-manifest",
     stages = ["pre-push"],
     entry = "uv run --group=dev -m check_manifest",
@@ -157,6 +165,7 @@ hooks = [
   },
   {
     id = "pyright",
+    priority = 520,
     name = "pyright",
     stages = ["pre-push"],
     entry = "uv run --group=dev -m pyright .",
@@ -170,6 +179,7 @@ hooks = [
   },
   {
     id = "deptry",
+    priority = 510,
     name = "deptry",
     entry = "uv run --group=dev -m deptry src/",
     language = "python",
@@ -179,6 +189,7 @@ hooks = [
   },
   {
     id = "vulture",
+    priority = 510,
     name = "vulture",
     entry = "uv run --group=dev -m vulture .",
     language = "python",
@@ -189,6 +200,7 @@ hooks = [
   },
   {
     id = "pyroma",
+    priority = 510,
     name = "pyroma",
     entry = "uv run --group=dev -m pyroma --min 10 .",
     language = "python",
@@ -199,6 +211,7 @@ hooks = [
   },
   {
     id = "ruff-check-fix",
+    priority = 140,
     name = "Ruff check fix",
     entry = "uv run --group=dev -m ruff check --fix",
     language = "python",
@@ -208,6 +221,7 @@ hooks = [
   },
   {
     id = "ruff-format-fix",
+    priority = 150,
     name = "Ruff format",
     entry = "uv run --group=dev -m ruff format",
     language = "python",
@@ -226,6 +240,7 @@ hooks = [
   },
   {
     id = "strict-kwargs-fix",
+    priority = 160,
     name = "strict-kwargs",
     entry = "uv run --group=dev strict-kwargs check --fix",
     language = "python",
@@ -236,6 +251,7 @@ hooks = [
   },
   {
     id = "no-defaults",
+    priority = 510,
     name = "no-defaults",
     entry = "uv run --group=dev no-defaults",
     language = "python",
@@ -246,6 +262,7 @@ hooks = [
   },
   {
     id = "pyproject-fmt-fix",
+    priority = 170,
     name = "pyproject-fmt",
     entry = "uv run --group=dev pyproject-fmt",
     language = "python",
@@ -256,6 +273,7 @@ hooks = [
   },
   {
     id = "vale-sync",
+    priority = 180,
     name = "vale sync",
     entry = "uv run --group=dev vale sync",
     language = "python",
@@ -266,6 +284,7 @@ hooks = [
   },
   {
     id = "snapper",
+    priority = 190,
     name = "snapper",
     entry = "uv run --group=dev snapper --native --max-width 0 --in-place",
     language = "python",
@@ -279,6 +298,7 @@ hooks = [
   },
   {
     id = "vale",
+    priority = 500,
     name = "vale",
     entry = "uv run --group=dev vale",
     language = "python",
@@ -292,6 +312,7 @@ hooks = [
   },
   {
     id = "doc8",
+    priority = 500,
     name = "doc8",
     entry = "uv run --group=dev -m doc8",
     language = "python",
@@ -321,6 +342,7 @@ hooks = [
   },
   {
     id = "interrogate",
+    priority = 510,
     name = "interrogate",
     entry = "uv run --group=dev -m interrogate",
     language = "python",
@@ -330,6 +352,7 @@ hooks = [
   },
   {
     id = "ty",
+    priority = 520,
     name = "ty",
     stages = ["pre-push"],
     entry = "uv run --group=dev ty check",
@@ -343,6 +366,7 @@ hooks = [
   },
   {
     id = "pyrefly",
+    priority = 520,
     name = "pyrefly",
     stages = ["pre-push"],
     entry = "uv run --group=dev pyrefly check",
@@ -356,6 +380,7 @@ hooks = [
   },
   {
     id = "pyrefly-coverage",
+    priority = 530,
     name = "pyrefly coverage",
     stages = ["pre-push"],
     entry = "uv run --group=dev pyrefly coverage check --strict --fail-under 100",
@@ -369,6 +394,7 @@ hooks = [
   },
   {
     id = "yamlfix",
+    priority = 200,
     name = "yamlfix",
     entry = "uv run --group=dev yamlfix",
     language = "python",
@@ -378,6 +404,7 @@ hooks = [
   },
   {
     id = "zizmor",
+    priority = 500,
     name = "zizmor",
     entry = "uv run --group=dev zizmor --strict-collection .github",
     language = "python",
@@ -397,6 +424,7 @@ hooks = [
   },
   {
     id = "sphinx-lint",
+    priority = 500,
     name = "sphinx-lint",
     entry = "uv run --group=dev sphinx-lint --enable=all --disable=line-too-long --ignore=docs/build",
     language = "python",
@@ -406,6 +434,7 @@ hooks = [
   },
   {
     id = "uv-lock",
+    priority = 510,
     name = "uv lock",
     entry = "uv lock --locked",
     language = "python",
