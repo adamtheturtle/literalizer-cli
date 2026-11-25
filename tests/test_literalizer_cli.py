@@ -379,26 +379,17 @@ def test_wrap_in_file_without_variable_unsupported() -> None:
     assert result.output == expected
 
 
-def test_variable_name_unsupported_for_language() -> None:
-    """Data-format languages reject ``--variable-name``."""
-    runner = CliRunner()
-    result = runner.invoke(
+def test_yaml_variable_name_becomes_a_string_key() -> None:
+    """A boolean-like name is quoted in a named YAML document."""
+    result = CliRunner().invoke(
         cli=main,
-        args=[
-            "-l",
-            "yaml",
-            "-f",
-            "json",
-            "--variable-name",
-            "data",
-        ],
-        input='{"a": 1}\n',
+        args=["-l", "yaml", "-f", "json", "--variable-name", "true"],
+        input="1",
         catch_exceptions=False,
         color=True,
     )
-    assert result.exit_code == 1
-    expected = "Error: Yaml does not support variable names: 'data'\n"
-    assert result.output == expected
+    assert result.exit_code == 0
+    assert result.output == '"true": 1\n'
 
 
 def test_dotted_call_target_unsupported_for_language() -> None:
@@ -1030,8 +1021,13 @@ def test_default_dict_key_type() -> None:
     assert "map[int]" in result.output
 
 
-def test_default_dict_value_type() -> None:
-    """--default-dict-value-type overrides the default dict value type."""
+@pytest.mark.parametrize(
+    argnames=("source", "value_type"),
+    argvalues=[("{}", "MyType"), ('{"a": 1, "b": "x"}', "any")],
+    ids=["empty-map-default", "mixed-values-widen"],
+)
+def test_default_dict_value_type(*, source: str, value_type: str) -> None:
+    """Go uses the default value type when it can hold the map values."""
     runner = CliRunner()
     result = runner.invoke(
         cli=main,
@@ -1043,12 +1039,12 @@ def test_default_dict_value_type() -> None:
             "--default-dict-value-type",
             "MyType",
         ],
-        input='{"a": 1, "b": "x"}\n',
+        input=source,
         catch_exceptions=False,
         color=True,
     )
     assert result.exit_code == 0
-    assert "map[string]MyType" in result.output
+    assert f"map[string]{value_type}" in result.output
 
 
 def test_default_sequence_element_type() -> None:
@@ -2700,3 +2696,123 @@ def test_collection_layout_applies_in_both_modes(
     )
     assert result.exit_code == 0, result.output
     assert result.output == expected
+
+
+@pytest.mark.parametrize(
+    argnames=("args", "source", "expected"),
+    argvalues=[
+        (
+            [
+                "-l",
+                "cobol",
+                "--program-name",
+                "ADACHECK",
+                "--wrap-in-file",
+                "--variable-name",
+                "values",
+            ],
+            "[1, 2]",
+            "PROGRAM-ID. ADACHECK.",
+        ),
+        (
+            ["-l", "elm", "--null-constructor-name", "Missing"],
+            "null",
+            "Missing",
+        ),
+        (
+            [
+                "-l",
+                "purescript",
+                "--module-name",
+                "Sample",
+                "--qualified-import",
+                "Data.Array",
+                "Arr",
+                "--qualified-import",
+                "Data.Map",
+                "Map",
+                "--wrap-in-file",
+                "--variable-name",
+                "values",
+            ],
+            "[1, 2]",
+            (
+                "module Sample where\n\n\n"
+                "import Data.Array as Arr\nimport Data.Map as Map"
+            ),
+        ),
+    ],
+    ids=[
+        "cobol-program-name",
+        "elm-null-constructor",
+        "purescript-module-name",
+    ],
+)
+def test_language_specific_names(
+    *, args: list[str], source: str, expected: str
+) -> None:
+    """The selected language uses its configured name in generated
+    output.
+    """
+    result = CliRunner().invoke(
+        cli=main, args=args, input=source, catch_exceptions=False, color=True
+    )
+
+    assert result.exit_code == 0
+    assert expected in result.output
+
+
+@pytest.mark.parametrize(
+    argnames="options",
+    argvalues=[
+        [],
+        [
+            "--mode",
+            "call",
+            "--call-function",
+            "consume",
+            "--call-params",
+            "value",
+        ],
+    ],
+    ids=["literal", "call"],
+)
+def test_rendering_depth_error(*, options: list[str]) -> None:
+    """Report a CLI error when rendering exceeds the nesting limit."""
+    source = "[" * 180 + "0" + "]" * 180
+    result = CliRunner().invoke(
+        cli=main,
+        args=["-l", "python", *options],
+        input=f"[[{source}]]" if len(options) > 0 else source,
+        catch_exceptions=False,
+        color=True,
+    )
+
+    assert result.exit_code == 1
+    assert (
+        result.output == "Error: The input is nested too deeply to render.\n"
+    )
+
+
+@pytest.mark.parametrize(
+    argnames=("language", "module", "expected"),
+    argvalues=[
+        ("python", "Data.Array", "--qualified-import is not supported"),
+        ("purescript", "data.array", "Invalid qualified import"),
+    ],
+    ids=["unsupported-language", "invalid-name"],
+)
+def test_invalid_qualified_import(
+    *, language: str, module: str, expected: str
+) -> None:
+    """The CLI reports invalid qualified imports without a traceback."""
+    result = CliRunner().invoke(
+        cli=main,
+        args=["-l", language, "--qualified-import", module, "Arr"],
+        input="1",
+        catch_exceptions=False,
+        color=True,
+    )
+
+    assert result.exit_code != 0
+    assert expected in result.output

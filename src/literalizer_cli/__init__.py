@@ -116,6 +116,10 @@ def _get_enum_for_option(
 # language and need no support probe.
 _OPTION_SUPPORT_FLAG: dict[str, Callable[[LanguageCls], bool]] = {
     "module_name": lambda cls: cls.supports_module_name,
+    "program_name": lambda cls: "program_name" in cls.__dataclass_fields__,
+    "null_constructor_name": (
+        lambda cls: "null_constructor_name" in cls.__dataclass_fields__
+    ),
     "empty_dict_key": lambda cls: cls.supports_empty_dict_key,
     "call_style": lambda cls: cls.supports_call_style,
     "default_dict_key_type": (lambda cls: cls.supports_default_dict_key_type),
@@ -347,6 +351,8 @@ _STRING_OPTIONS: frozenset[str] = frozenset(
         "default_set_element_type",
         "default_ordered_map_value_type",
         "module_name",
+        "program_name",
+        "null_constructor_name",
         "record_struct_name_prefix",
         "heterogeneous_value_variant_name",
         "multiline_raw_string_delimiter_base",
@@ -501,10 +507,10 @@ def literalize_input(
             ref_case=ref_case,
             ref_key=ref_key,
         )
-    # Every exception the library raises derives from
-    # ``LiteralizerError``. Matching the base class keeps clean error
-    # output correct as the library grows: a hand-maintained tuple let
-    # any exception missing from it escape as a Python traceback.
+    except RecursionError as exc:
+        raise click.ClickException(
+            message="The input is nested too deeply to render.",
+        ) from exc
     except literalizer.exceptions.LiteralizerError as exc:
         raise click.ClickException(message=str(object=exc)) from exc
 
@@ -542,10 +548,10 @@ def literalize_call_input(
             ref_key=ref_key,
             variable_form=variable_form,
         )
-    # Every exception the library raises derives from
-    # ``LiteralizerError``. Matching the base class keeps clean error
-    # output correct as the library grows: a hand-maintained tuple let
-    # any exception missing from it escape as a Python traceback.
+    except RecursionError as exc:
+        raise click.ClickException(
+            message="The input is nested too deeply to render.",
+        ) from exc
     except literalizer.exceptions.LiteralizerError as exc:
         raise click.ClickException(message=str(object=exc)) from exc
 
@@ -738,12 +744,28 @@ def literalize_call_input(
     help=_UNION_FORMAT_HELP,
 )
 @click.option(
+    "--qualified-import",
+    "qualified_imports",
+    type=click.Tuple(types=[str, str]),
+    metavar="MODULE ALIAS",
+    multiple=True,
+    help="Add a qualified PureScript import. Repeat for more imports.",
+)
+@click.option(
+    "--program-name",
+    help="Program identifier for complete COBOL output.",
+)
+@click.option(
+    "--null-constructor-name",
+    help="Constructor name for Elm null values.",
+)
+@click.option(
     "--module-name",
     default=None,
     help=(
         "Module/namespace name for languages whose wrap-in-file form"
         " introduces a named scope (e.g. C, C++, D, Erlang, Fortran, F#,"
-        " Java, Objective-C, Occam, SystemVerilog)."
+        " Java, Objective-C, Occam, PureScript, SystemVerilog)."
     ),
 )
 @click.option(
@@ -909,6 +931,9 @@ def main(
     annotation_evaluation: str | None,
     union_format: str | None,
     module_name: str | None,
+    program_name: str | None,
+    qualified_imports: tuple[tuple[str, str], ...],
+    null_constructor_name: str | None,
     default_dict_key_type: str | None,
     default_dict_value_type: str | None,
     default_sequence_element_type: str | None,
@@ -945,7 +970,7 @@ def main(
         )
     lang_cls = _LANGUAGE_MAP[language]
 
-    lang_kwargs: dict[str, str | enum.Enum] = {}
+    lang_kwargs: dict[str, str | enum.Enum | tuple[tuple[str, str], ...]] = {}
     cli_language_options = {
         "sequence_format": sequence_format,
         "set_format": set_format,
@@ -998,6 +1023,8 @@ def main(
         "default_set_element_type": default_set_element_type,
         "default_ordered_map_value_type": default_ordered_map_value_type,
         "module_name": module_name,
+        "program_name": program_name,
+        "null_constructor_name": null_constructor_name,
         "record_struct_name_prefix": record_struct_name_prefix,
         "heterogeneous_value_variant_name": heterogeneous_value_variant_name,
         "multiline_raw_string_delimiter_base": (
@@ -1018,13 +1045,23 @@ def main(
                 )
             lang_kwargs[option_name] = value
 
+    if len(qualified_imports) > 0:
+        if "qualified_imports" not in lang_cls.__dataclass_fields__:
+            raise click.UsageError(
+                message=(
+                    "--qualified-import is not supported for "
+                    f"language '{language}'."
+                ),
+            )
+        lang_kwargs["qualified_imports"] = qualified_imports
+
     try:
         lang_instance = lang_cls(indent=indent, **lang_kwargs)
     # Every exception the library raises derives from
     # ``LiteralizerError``. Matching the base class keeps clean error
     # output correct as the library grows: a hand-maintained tuple let
     # any exception missing from it escape as a Python traceback.
-    except literalizer.exceptions.LiteralizerError as exc:
+    except (literalizer.exceptions.LiteralizerError, ValueError) as exc:
         raise click.ClickException(message=str(object=exc)) from exc
 
     variable_form: VariableForm | None = None
