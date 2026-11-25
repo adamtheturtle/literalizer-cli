@@ -2778,9 +2778,7 @@ def test_language_specific_names(
     ids=["literal", "call"],
 )
 def test_rendering_depth_error(*, options: list[str]) -> None:
-    """Valid JSON that exceeds the renderer's nesting limit gets a CLI
-    error.
-    """
+    """Report a CLI error when rendering exceeds the nesting limit."""
     source = "[" * 180 + "0" + "]" * 180
     result = CliRunner().invoke(
         cli=main,
