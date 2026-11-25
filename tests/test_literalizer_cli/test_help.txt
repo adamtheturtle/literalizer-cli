@@ -130,7 +130,7 @@ Options:
                                   ansi, c99, cpp14, cpp17, cpp20, dev_2024,
                                   dotnet_6, edition_2021, es2015, ghc2021,
                                   ieee_1800_2017, jdk_11, jdk_16, otp_25, py38,
-                                  py39, r2022a, r7rs, sml_97, v0, v0_12, v0_14,
+                                  py39, r2022a, r7rs, sml_97, v0_12, v0_14,
                                   v0_15, v0_19, v0_20, v0_4, v1, v10, v17,
                                   v1_11, v1_14, v1_18, v1_2, v1_9, v2, v2002,
                                   v2003, v2008, v24_5, v2_4, v3, v4, v5, v5_1,
@@ -144,10 +144,16 @@ Options:
                                   Choices across all languages: auto, pipe,
                                   typing. Not every language accepts every
                                   value.
+  --qualified-import MODULE ALIAS
+                                  Add a qualified PureScript import. Repeat for
+                                  more imports.
+  --program-name TEXT             Program identifier for complete COBOL output.
+  --null-constructor-name TEXT    Constructor name for Elm null values.
   --module-name TEXT              Module/namespace name for languages whose
                                   wrap-in-file form introduces a named scope
                                   (e.g. C, C++, D, Erlang, Fortran, F#, Java,
-                                  Objective-C, Occam, SystemVerilog).
+                                  Objective-C, Occam, PureScript,
+                                  SystemVerilog).
   --default-dict-key-type TEXT    Default type for dict keys (language-specific,
                                   free-form string).
   --default-dict-value-type TEXT  Default type for dict values (language-
